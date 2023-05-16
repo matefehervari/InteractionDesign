@@ -28,7 +28,7 @@
             android:layout_gravity="top"
             android:layout_weight="8"
             android:scaleType="centerCrop"
-            android:src="@mipmap/sunny_icon_foreground" />
+            android:src="@drawable/sunny_main_image" />
 
     </LinearLayout>
 
