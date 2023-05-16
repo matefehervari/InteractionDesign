@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/FragmentHomeBinding"
     android:layout_width="match_parent"
     android:layout_height="fill_parent"
     tools:context=".ui.home.HomeFragment">
@@ -151,7 +152,7 @@
                 android:layout_height="fill_parent"
                 android:layout_weight="1"
                 android:foregroundTint="@android:color/secondary_text_light"
-                android:src="@mipmap/cloudy_icon_foreground"
+                android:src="@drawable/rain_indicator_icon"
                 app:tint="@android:color/secondary_text_dark" />
 
             <ImageView
@@ -160,7 +161,7 @@
                 android:layout_height="fill_parent"
                 android:layout_weight="1"
                 android:foregroundTint="@android:color/secondary_text_light"
-                android:src="@mipmap/cloudy_icon_foreground"
+                android:src="@drawable/wind_indicator_icon"
                 app:tint="@android:color/secondary_text_dark" />
 
             <ImageView
@@ -169,7 +170,7 @@
                 android:layout_height="fill_parent"
                 android:layout_weight="1"
                 android:foregroundTint="@android:color/secondary_text_light"
-                android:src="@mipmap/cloudy_icon_foreground"
+                android:src="@drawable/coat_indicator_icon"
                 app:tint="@android:color/secondary_text_dark" />
 
             <ImageView
@@ -178,7 +179,7 @@
                 android:layout_height="fill_parent"
                 android:layout_weight="1"
                 android:foregroundTint="@android:color/secondary_text_light"
-                android:src="@mipmap/cloudy_icon_foreground"
+                android:src="@drawable/light_indicator_icon"
                 app:tint="@android:color/secondary_text_dark" />
 
         </LinearLayout>
