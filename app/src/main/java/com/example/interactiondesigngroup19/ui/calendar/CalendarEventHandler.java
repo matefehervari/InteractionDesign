@@ -1,5 +1,9 @@
 package com.example.interactiondesigngroup19.ui.calendar;
 
+import android.content.Context;
+
+import com.example.interactiondesigngroup19.R;
+
 import java.time.LocalTime;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -8,13 +12,16 @@ import java.util.Random;
 
 public class CalendarEventHandler {
     private final LinkedList<CalendarEvent> events;
+    private final EventWriteReader eventReadWriter;
 
-    public CalendarEventHandler() {
-        events = new LinkedList<>();
+    public CalendarEventHandler(Context context) {
+        eventReadWriter = new EventWriteReader(context);
+        events = eventReadWriter.ReadEvents();
     }
 
     public void addEvent(CalendarEvent event) {
         addSortedEvent(event);
+        eventReadWriter.WriteEvents(events);
     }
 
     public void addEvent(LocalTime startTime, LocalTime endTime, List<IndicatorsStud> indicators) {
@@ -49,12 +56,15 @@ public class CalendarEventHandler {
         }
     }
 
-    public void addRandomEvent() {
+    public CalendarEvent addRandomEvent() {
         Random rand = new Random();
         LocalTime randomStart = LocalTime.of(rand.nextInt(24), rand.nextInt(60));
         LocalTime randomEnd = LocalTime.of(rand.nextInt(24), rand.nextInt(60));
 
-        addSortedEvent(new CalendarEvent(randomStart, randomEnd, new LinkedList<IndicatorsStud>()));
+        CalendarEvent calendarEvent = new CalendarEvent(randomStart, randomEnd, new LinkedList<IndicatorsStud>());
+        addEvent(calendarEvent);
+
+        return calendarEvent;
     }
 
     @Override
