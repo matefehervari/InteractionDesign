@@ -9,7 +9,11 @@
         android:id="@+id/navigation_home"
         android:name="com.example.interactiondesigngroup19.ui.home.HomeFragment"
         android:label="@string/title_home"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/action_navigation_home_to_navigation_weather_details"
+            app:destination="@id/navigation_weather_details" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_route_planner"
@@ -22,4 +26,11 @@
         android:name="com.example.interactiondesigngroup19.ui.calendar.CalendarFragment"
         android:label="@string/title_calendar"
         tools:layout="@layout/fragment_calendar" />
+
+    <fragment
+        android:id="@+id/navigation_weather_details"
+        android:name="com.example.interactiondesigngroup19.ui.weather_details.WeatherDetailsFragment"
+        android:label="Weather Details"
+        tools:layout="@layout/fragment_weather_details" />
+
 </navigation>
