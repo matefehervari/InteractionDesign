@@ -37,6 +37,6 @@ public class LocationAPI {
                     android.Manifest.permission.ACCESS_COARSE_LOCATION
             });
         }
-        locationClient.getCurrentLocation(100, null).addOnSuccessListener(success).addOnFailureListener(failure);
+        locationClient.getLastLocation().addOnSuccessListener(success).addOnFailureListener(failure);
     }
 }
