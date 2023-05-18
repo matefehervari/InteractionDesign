@@ -18,11 +18,9 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import org.json.JSONObject;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * The means by which weather information is fetched.
@@ -38,7 +36,6 @@ public class WebResourceAPI {
     private static Map<String, JSONObject> weatherRequestCache = new HashMap<>();
     private static Map<String, JSONObject> mapRequestCache = new HashMap<>();
     private static Map<String, WeatherResult> weatherResultCache = new HashMap<>();
-    private static Set<String> fetchedForecasts = new HashSet<>();
 
     public static class WeatherResult {
         public final float windSpeed;
@@ -78,7 +75,6 @@ public class WebResourceAPI {
             rain = !data.isNull("rain") ? (float) data.getJSONObject("rain").getDouble("3h") : 0;
             snow = !data.isNull("snow") ? (float) data.getJSONObject("snow").getDouble("3h") : 0;
             timeText = data.getString("dt_txt");
-
         }
     }
 
@@ -104,9 +100,16 @@ public class WebResourceAPI {
         }
     }
 
-    public static void getWeatherForecast(Context context, Location location, long time, OnSuccessListener<WeatherResult> response, OnFailureListener errorResponse) {
-
-
+    public static boolean getWeatherForecast(Context context, Location location, long time, OnSuccessListener<WeatherResult> response, OnFailureListener errorResponse) {
+        if (location != null) {
+            long cacheTime = time / (1000 * 60 * 60 * 3);
+            String cacheRequest = String.format(Locale.UK, "F:T:%d Lat:%f.3 Lon:%f.3", cacheTime, location.getLongitude(), location.getLatitude());
+            if (weatherResultCache.containsKey(cacheRequest)) {
+                response.onSuccess(weatherResultCache.get(cacheRequest));
+            }
+            return true;
+        }
+        return false;
     }
 
     private static void makeRequest(Context context, String url, Response.Listener<JSONObject> response, Response.ErrorListener errorResponse) {
@@ -120,7 +123,7 @@ public class WebResourceAPI {
         if (location != null && resource != null) {
             if (Objects.equals(resource, CURRENT_WEATHER)) {
                 long time = System.currentTimeMillis() / (1000 * 60 * 10);
-                String cacheRequest = String.format(Locale.UK, "CT:%d Lat:%f.3 Lon:%f.3", time, location.getLatitude(), location.getLongitude());
+                String cacheRequest = String.format(Locale.UK, "C:T:%d Lat:%f.3 Lon:%f.3", time, location.getLatitude(), location.getLongitude());
                 if (weatherRequestCache.containsKey(cacheRequest)) {
                     response.onResponse(weatherRequestCache.get(cacheRequest));
                 } else {
@@ -129,7 +132,7 @@ public class WebResourceAPI {
                 }
             } else if (Objects.equals(resource, FORECAST_WEATHER)) {
                 long time = System.currentTimeMillis() / (1000 * 60 * 60);
-                String cacheRequest = String.format(Locale.UK, "FT:%d Lat:%f.3 Lon:%f.3", time, location.getLatitude(), location.getLongitude());
+                String cacheRequest = String.format(Locale.UK, "F:T:%d Lat:%f.3 Lon:%f.3", time, location.getLatitude(), location.getLongitude());
                 if (weatherRequestCache.containsKey(cacheRequest)) {
                     response.onResponse(weatherRequestCache.get(cacheRequest));
                 } else {
@@ -149,7 +152,7 @@ public class WebResourceAPI {
                                       Response.Listener<JSONObject> response, Response.ErrorListener errorResponse) {
         if (location != null) {
             if (Objects.equals(resource, MAP_SEARCH)) {
-                String cacheRequest = String.format(Locale.UK, "MS: Lat:%f.4 Lon:%f.4 Req:%s Lim:%d",
+                String cacheRequest = String.format(Locale.UK, "MS:Lat:%f.4 Lon:%f.4 Req:%s Lim:%d",
                         location.getLatitude(), location.getLongitude(), request, limit);
                 if (mapRequestCache.containsKey(cacheRequest)) {
                     response.onResponse(mapRequestCache.get(cacheRequest));
