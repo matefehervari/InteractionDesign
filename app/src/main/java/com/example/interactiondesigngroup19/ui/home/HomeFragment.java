@@ -43,11 +43,15 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
 
         final TextView textView = binding.temperatureTextview;
-        final ImageButton refresh = binding.RefreshButton;
+        final ImageButton refresh = binding.refreshButton;
+
+        final ImageView imageView = binding.weatherIconImageview;
         refresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 HomeViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
+                imageView.setImageResource(HomeViewModel.getImageID());
+
             }
         });
 
