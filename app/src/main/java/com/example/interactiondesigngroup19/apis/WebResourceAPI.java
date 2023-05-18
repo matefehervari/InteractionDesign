@@ -106,6 +106,8 @@ public class WebResourceAPI {
             String cacheRequest = String.format(Locale.UK, "F:T:%d Lat:%f.3 Lon:%f.3", cacheTime, location.getLongitude(), location.getLatitude());
             if (weatherResultCache.containsKey(cacheRequest)) {
                 response.onSuccess(weatherResultCache.get(cacheRequest));
+            } else {
+
             }
             return true;
         }
