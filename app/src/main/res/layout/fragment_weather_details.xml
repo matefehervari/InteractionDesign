@@ -58,13 +58,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginBottom="50dp">
+                android:layout_marginBottom="50dp"
+                android:backgroundTint="@android:color/secondary_text_dark"
+                android:foregroundTint="@android:color/primary_text_light_nodisable">
 
                 <LinearLayout
                     android:id="@+id/WeatherDetailsLinearLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="#FFFFFF"
+                    android:background="@android:color/transparent"
                     android:orientation="vertical"/>
             </ScrollView>
 

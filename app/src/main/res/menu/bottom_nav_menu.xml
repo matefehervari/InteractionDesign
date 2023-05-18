@@ -3,16 +3,16 @@
 
     <item
         android:id="@+id/navigation_route_planner"
-        android:icon="@drawable/ic_route_planner_icon"
+        android:icon="@drawable/route_planner_image"
         android:title="@string/title_route_planner" />
 
     <item
         android:id="@+id/navigation_home"
-        android:icon="@drawable/ic_home_black_24dp"
+        android:icon="@drawable/home_image"
         android:title="@string/title_home" />
     <item
         android:id="@+id/navigation_calendar"
-        android:icon="@drawable/ic_calendar_icon"
+        android:icon="@drawable/calendar_image"
         android:title="@string/title_calendar" />
 
 </menu>
