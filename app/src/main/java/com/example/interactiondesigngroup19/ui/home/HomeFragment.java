@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -44,13 +45,33 @@ public class HomeFragment extends Fragment {
 
         final TextView textView = binding.temperatureTextview;
         final ImageButton refresh = binding.refreshButton;
+        final ImageView mainImage = binding.weatherIconImageview;
 
-        final ImageView imageView = binding.weatherIconImageview;
+        final ImageView rainIndicatorImage = binding.imageView12;
+        final ImageView windIndicatorImage = binding.imageView19;
+        final ImageView coatIndicatorImage = binding.imageView20;
+        final ImageView lightIndicatorImage = binding.imageView21;
+
         refresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 HomeViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
-                imageView.setImageResource(HomeViewModel.getImageID());
+                mainImage.setImageResource(HomeViewModel.getImageID());
+
+                // Changes the attributes of the indicator images to indicate on/off
+                rainIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), HomeViewModel.getRainTint()));
+                windIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), HomeViewModel.getWindTint()));
+                coatIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), HomeViewModel.getCoatTint()));
+                lightIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), HomeViewModel.getLightTint()));
+                
+                rainIndicatorImage.setScaleX(HomeViewModel.getRainScale());
+                rainIndicatorImage.setScaleY(HomeViewModel.getRainScale());
+                windIndicatorImage.setScaleX(HomeViewModel.getWindScale());
+                windIndicatorImage.setScaleY(HomeViewModel.getWindScale());
+                coatIndicatorImage.setScaleX(HomeViewModel.getCoatScale());
+                coatIndicatorImage.setScaleY(HomeViewModel.getCoatScale());
+                lightIndicatorImage.setScaleX(HomeViewModel.getLightScale());
+                lightIndicatorImage.setScaleY(HomeViewModel.getLightScale());
 
             }
         });
