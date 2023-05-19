@@ -47,10 +47,10 @@ public class HomeFragment extends Fragment {
         final ImageButton refresh = binding.refreshButton;
         final ImageView mainImage = binding.weatherIconImageview;
 
-        final ImageView rainIndicatorImage = binding.imageView12;
-        final ImageView windIndicatorImage = binding.imageView19;
-        final ImageView coatIndicatorImage = binding.imageView20;
-        final ImageView lightIndicatorImage = binding.imageView21;
+        final ImageView rainIndicatorImage = binding.rainIndicator;
+        final ImageView windIndicatorImage = binding.windIndicator;
+        final ImageView coatIndicatorImage = binding.coatIndicator;
+        final ImageView lightIndicatorImage = binding.lightIndicator;
 
         refresh.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -59,19 +59,20 @@ public class HomeFragment extends Fragment {
                 mainImage.setImageResource(HomeViewModel.getImageID());
 
                 // Changes the attributes of the indicator images to indicate on/off
-                rainIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), HomeViewModel.getRainTint()));
-                windIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), HomeViewModel.getWindTint()));
-                coatIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), HomeViewModel.getCoatTint()));
-                lightIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), HomeViewModel.getLightTint()));
+                HomeViewModel model = new HomeViewModel();
+                rainIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getRainTint()));
+                windIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getWindTint()));
+                coatIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getCoatTint()));
+                lightIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getLightTint()));
                 
-                rainIndicatorImage.setScaleX(HomeViewModel.getRainScale());
-                rainIndicatorImage.setScaleY(HomeViewModel.getRainScale());
-                windIndicatorImage.setScaleX(HomeViewModel.getWindScale());
-                windIndicatorImage.setScaleY(HomeViewModel.getWindScale());
-                coatIndicatorImage.setScaleX(HomeViewModel.getCoatScale());
-                coatIndicatorImage.setScaleY(HomeViewModel.getCoatScale());
-                lightIndicatorImage.setScaleX(HomeViewModel.getLightScale());
-                lightIndicatorImage.setScaleY(HomeViewModel.getLightScale());
+                rainIndicatorImage.setScaleX(model.getRainScale());
+                rainIndicatorImage.setScaleY(model.getRainScale());
+                windIndicatorImage.setScaleX(model.getWindScale());
+                windIndicatorImage.setScaleY(model.getWindScale());
+                coatIndicatorImage.setScaleX(model.getCoatScale());
+                coatIndicatorImage.setScaleY(model.getCoatScale());
+                lightIndicatorImage.setScaleX(model.getLightScale());
+                lightIndicatorImage.setScaleY(model.getLightScale());
 
             }
         });

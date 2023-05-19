@@ -24,8 +24,8 @@ public class HomeViewModel extends ViewModel {
     private static MutableLiveData<String> mText;
     private static int mImageID;
 
-    private static int rainTint, windTint, coatTint, lightTint;
-    private static float rainScale, windScale, coatScale, lightScale;
+    private int rainTint, windTint, coatTint, lightTint;
+    private float rainScale, windScale, coatScale, lightScale;
 
     public HomeViewModel() {
         mText = new MutableLiveData<>();
@@ -34,10 +34,12 @@ public class HomeViewModel extends ViewModel {
         Context currentContext = null;
 
         // Get location from somewhere
-        Location currentLocation = null;
+        Location currentLocation = new Location("");
+        currentLocation.setLatitude(52.2053844);
+        currentLocation.setLongitude(0.1189721);
 
         // Get 'time' as a long?
-        long time = 0;
+        long time = System.currentTimeMillis();
 
         OnSuccessListener<WebResourceAPI.WeatherResult> weatherResultListener = new OnSuccessListener<WebResourceAPI.WeatherResult>() {
             @Override
@@ -51,6 +53,10 @@ public class HomeViewModel extends ViewModel {
             @Override
             public void onFailure(@NonNull Exception e) {
 
+                rainTint = R.color.indicator_off;
+                windTint = R.color.indicator_off;
+                coatTint = R.color.indicator_off;
+                lightTint = R.color.indicator_off;
             }
         };
 
@@ -59,7 +65,7 @@ public class HomeViewModel extends ViewModel {
         // processWeatherRequest();
     }
 
-    public static void processWeatherRequest(WebResourceAPI.WeatherResult weatherResult) {
+    public void processWeatherRequest(WebResourceAPI.WeatherResult weatherResult) {
 
         String generalWeatherDescription = weatherResult.main.toLowerCase();
 
@@ -121,29 +127,29 @@ public class HomeViewModel extends ViewModel {
         return mImageID;
     }
 
-    public static int getRainTint() {
+    public int getRainTint() {
         return rainTint;
     }
-    public static int getWindTint() {
+    public int getWindTint() {
         return windTint;
     }
-    public static int getCoatTint() {
+    public int getCoatTint() {
         return coatTint;
     }
-    public static int getLightTint() {
+    public int getLightTint() {
         return lightTint;
     }
 
-    public static float getRainScale() {
+    public float getRainScale() {
         return rainScale;
     }
-    public static float getWindScale() {
+    public float getWindScale() {
         return windScale;
     }
-    public static float getCoatScale() {
+    public float getCoatScale() {
         return coatScale;
     }
-    public static float getLightScale() {
+    public float getLightScale() {
         return lightScale;
     }
 }
