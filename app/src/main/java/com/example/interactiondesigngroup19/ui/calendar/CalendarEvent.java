@@ -1,59 +1,57 @@
 package com.example.interactiondesigngroup19.ui.calendar;
 
+import androidx.annotation.NonNull;
+
+import com.example.interactiondesigngroup19.ui.util.Indicator;
+
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Locale;
 
 public class CalendarEvent implements Serializable {
 
-    private final LocalTime startTime;
+    private final LocalDateTime startDateTime;
     private final LocalTime endTime;
 
-    private final List<IndicatorsStud> indicators;
+    private final List<Indicator> indicators;
 
-    public CalendarEvent(LocalTime startTime, LocalTime endTime, List<IndicatorsStud> indicators) {
-        this.startTime = startTime;
+    public CalendarEvent(LocalDateTime startTime, LocalTime endTime, List<Indicator> indicators) {
+        this.startDateTime = startTime;
         this.endTime = endTime;
         this.indicators = indicators;
     }
 
     public String getStartTimeString() {
-        return "" + padZero(2, startTime.getHour()) + ":" + padZero(2, startTime.getMinute());
+        return "" + padZero(startDateTime.getHour()) + ":" + padZero(startDateTime.getMinute());
     }
 
     public String getEndTimeString() {
-        return "" + padZero(2, endTime.getHour()) + ":" + padZero(2, endTime.getMinute());
+        return "" + padZero(endTime.getHour()) + ":" + padZero(endTime.getMinute());
     }
 
-    public LocalTime getStartTime() {
-        return startTime;
+    public LocalDateTime getStartDateTime() {
+        return startDateTime;
     }
 
     public LocalTime getEndTime() {
         return endTime;
     }
 
-    public List<IndicatorsStud> getIndicators() {
+    public List<Indicator> getIndicators() {
         return indicators;
     }
 
-    private String padZero(int length, String string) {
-        if (string.length() >= length) {
-            return string;
-        }
-        else {
-            return "0".repeat(length - string.length()) + string;
-        }
+    private String padZero(int integer) {
+        return String.format(Locale.ENGLISH,"%02d", integer);
     }
 
-    private String padZero(int length, int integer) {
-        return padZero(length, String.valueOf(integer));
-    }
-
+    @NonNull
     @Override
     public String toString() {
         return "CalendarEvent{" +
-                "startTime=" + startTime +
+                "startTime=" + startDateTime +
                 ", endTime=" + endTime +
                 '}';
     }

@@ -13,46 +13,84 @@
         android:orientation="vertical">
 
         <com.google.android.material.card.MaterialCardView
-            android:layout_height="match_parent"
             android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="8dp"
+            android:checkable="true"
             android:clickable="true"
             android:focusable="true"
-            android:checkable="true"
+            app:cardCornerRadius="15dp"
             app:strokeColor="@color/black"
-            app:strokeWidth="1dp"
-            android:layout_margin="8dp"
-            app:cardCornerRadius="15dp">
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+                android:orientation="horizontal">
 
-                <!-- Title, secondary and supporting text -->
-                <TextView
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="title 1"
-                    android:textAppearance="?attr/textAppearanceHeadline6"
-                    />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="title 2"
-                    android:textAppearance="?attr/textAppearanceBody2"
-                    android:textColor="?android:attr/textColorSecondary"
-                    />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="title 3"
-                    android:textAppearance="?attr/textAppearanceBody2"
-                    android:textColor="?android:attr/textColorSecondary"
-                    />
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
+                    <!-- Title, secondary and supporting text -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="title 1"
+                        android:textAppearance="?attr/textAppearanceHeadline6" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="title 2"
+                        android:textAppearance="?attr/textAppearanceBody2"
+                        android:textColor="?android:attr/textColorSecondary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="title 3"
+                        android:textAppearance="?attr/textAppearanceBody2"
+                        android:textColor="?android:attr/textColorSecondary" />
+
+                </LinearLayout>
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:padding="10dp">
+
+                    <ImageView
+                        android:layout_width="50dp"
+                        android:layout_height="fill_parent"
+                        android:layout_toLeftOf="@id/wind_icon"
+                        android:src="@drawable/rain_indicator_icon" />
+
+                    <ImageView
+                        android:id="@+id/wind_icon"
+                        android:layout_width="50dp"
+                        android:layout_height="fill_parent"
+                        android:layout_toLeftOf="@id/coat_icon"
+                        android:src="@drawable/wind_indicator_icon" />
+
+                    <ImageView
+                        android:id="@+id/coat_icon"
+                        android:layout_width="50dp"
+                        android:layout_height="fill_parent"
+                        android:layout_toLeftOf="@id/light_icon"
+                        android:src="@drawable/coat_indicator_icon" />
+
+                    <ImageView
+                        android:id="@+id/light_icon"
+                        android:layout_width="50dp"
+                        android:layout_height="fill_parent"
+                        android:layout_alignParentRight="true"
+                        android:src="@drawable/light_indicator_icon" />
+                </RelativeLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
