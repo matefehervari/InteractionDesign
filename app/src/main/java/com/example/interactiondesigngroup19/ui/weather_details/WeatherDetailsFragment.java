@@ -1,5 +1,6 @@
 package com.example.interactiondesigngroup19.ui.weather_details;
 
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.app.ActionBar;
@@ -35,7 +36,7 @@ public class WeatherDetailsFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        
+
         CalendarViewModel calendarViewModel =
                 new ViewModelProvider(this).get(CalendarViewModel.class);
 
@@ -52,6 +53,8 @@ public class WeatherDetailsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         LinearLayout linearLayout = binding.WeatherDetailsLinearLayout;
+
+        linearLayout.removeAllViews();
 
         for (int i = 0; i < 20; i ++) {
             TableRow.LayoutParams param1 = new TableRow.LayoutParams(
@@ -78,11 +81,11 @@ public class WeatherDetailsFragment extends Fragment {
             textView1.setText(Integer.toString(i));
             textView1.setLayoutParams(param1);
             textView1.setTextSize(30);
-            textView1.setGravity(Gravity.CENTER);
+            textView1.setGravity(Gravity.CENTER);;
             tableRow.addView(textView1);
 
             ImageView imageView = new ImageView(getContext());
-            imageView.setImageDrawable(getResources().getDrawable(R.drawable.ic_calendar_icon));
+            imageView.setImageDrawable(getResources().getDrawable(R.drawable.sunny_main_image));
             imageView.setLayoutParams(param2);
             tableRow.addView(imageView);
 
