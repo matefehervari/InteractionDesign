@@ -30,33 +30,25 @@ public class HomeViewModel extends ViewModel {
     public HomeViewModel() {
         mText = new MutableLiveData<>();
 
-        // Get context for the current request (N.B. but not used by getWeatherForecast() ?)
-        Context currentContext = null;
+        // TESTING - to show that indicator icons work (this does NOT use the API call)
+        mImageID = R.drawable.rainy_main_image;
+        mText.setValue("30°");
 
-        // Get location from somewhere
-        Location currentLocation = null;
+        boolean rainIndicator = true;
+        boolean windIndicator = false;
+        boolean coatIndicator = true;
+        boolean lightIndicator = false;
 
-        // Get 'time' as a long?
-        long time = 0;
+        rainTint = rainIndicator ? R.color.rain_indicator_on : R.color.indicator_off;
+        windTint = windIndicator ? R.color.wind_indicator_on : R.color.indicator_off;
+        coatTint = coatIndicator ? R.color.coat_indicator_on : R.color.indicator_off;
+        lightTint = lightIndicator ? R.color.light_indicator_on : R.color.indicator_off;
 
-        OnSuccessListener<WebResourceAPI.WeatherResult> weatherResultListener = new OnSuccessListener<WebResourceAPI.WeatherResult>() {
-            @Override
-            public void onSuccess(WebResourceAPI.WeatherResult weatherResult) {
-                processWeatherRequest(weatherResult);
-            }
-        };
+        rainScale = rainIndicator ? 1.0f : 0.5f;
+        windScale = windIndicator ? 1.0f : 0.5f;
+        coatScale = coatIndicator ? 1.0f : 0.5f;
+        lightScale = lightIndicator ? 1.0f : 0.5f;
 
-        // Deal with failure of API request?
-        OnFailureListener failureListener = new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-
-            }
-        };
-
-        WebResourceAPI.getWeatherForecast(currentContext, currentLocation, time, weatherResultListener, failureListener);
-
-        // processWeatherRequest();
     }
 
     public static void processWeatherRequest(WebResourceAPI.WeatherResult weatherResult) {
