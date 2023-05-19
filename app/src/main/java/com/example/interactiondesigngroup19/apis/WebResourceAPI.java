@@ -15,9 +15,13 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -54,6 +58,7 @@ public class WebResourceAPI {
         public final int clouds;
         public final float rain;
         public final float snow;
+        public final boolean day;
 
         public WeatherResult(JSONObject data) throws org.json.JSONException {
             time = data.getLong("dt");
@@ -65,6 +70,7 @@ public class WebResourceAPI {
             JSONObject weatherData = data.getJSONArray("weather").getJSONObject(0);
             main = weatherData.getString("main");
             desc = weatherData.getString("description");
+            day = weatherData.getString("icon").contains("d");
             JSONObject windData = data.getJSONObject("wind");
             clouds = data.getJSONObject("clouds").getInt("all");
             windSpeed = (float) windData.getDouble("speed");
@@ -78,16 +84,45 @@ public class WebResourceAPI {
         }
     }
 
-    private static class CacheResponse<T> implements Response.Listener<T> {
-        private Response.Listener<T> response;
-        private String request;
-        private Map<String, T> cache;
+    public static class MapLocation {
+        public final String title; public final String addressLabel; public final String country;
+        public final double lat; public final double lon;
+        public MapLocation(JSONObject obj) throws JSONException{
+            title = obj.getString("title");
+            JSONObject addr = obj.getJSONObject("address");
+            addressLabel = addr.getString("label");
+            country = addr.getString("countryName");
+            JSONObject pos = obj.getJSONObject("position");
+            lat = pos.getDouble("lat");
+            lon = pos.getDouble("lon");
+        }
+    }
 
-        public CacheResponse(Response.Listener<T> response, String request, Map<String, T> cache) { this.response = response; this.request = request; this.cache = cache; }
-        @Override
-        public void onResponse(T response) {
-            cache.put(request, response);
-            this.response.onResponse(response);
+    private static <T> void cacheResponse(T response, Response.Listener<T> responseListener, String request, Map<String, T> cache) {
+        cache.put(request, response);
+        responseListener.onResponse(response);
+    }
+
+    private static void getCachedWeatherRequest(String cacheRequest, OnSuccessListener<WeatherResult> response, OnFailureListener errorResponse) {
+        if (weatherRequestCache.containsKey(cacheRequest)) {
+            response.onSuccess(weatherResultCache.get(cacheRequest));
+        } else {
+            errorResponse.onFailure(new NullPointerException());
+        }
+    }
+
+    private static void processForecastJson(JSONObject response, double lat, double lon) throws JSONException{
+        int num = response.getInt("cnt");
+        String cacheRequest;
+        for (int i = 0; i < num; i++) {
+            try {
+                WeatherResult w = new WeatherResult(response.getJSONArray("list").getJSONObject(i));
+                long cacheTime = w.time / (1000 * 60 * 60 * 3);
+                cacheRequest = String.format(Locale.UK, "F:T:%d Lat:%f.3 Lon:%f.3", cacheTime, lat, lon);
+                weatherResultCache.put(cacheRequest, w);
+            } finally {
+
+            }
         }
     }
 
@@ -102,16 +137,125 @@ public class WebResourceAPI {
 
     public static boolean getWeatherForecast(Context context, Location location, long time, OnSuccessListener<WeatherResult> response, OnFailureListener errorResponse) {
         if (location != null) {
-            long cacheTime = time / (1000 * 60 * 60 * 3);
-            String cacheRequest = String.format(Locale.UK, "F:T:%d Lat:%f.3 Lon:%f.3", cacheTime, location.getLongitude(), location.getLatitude());
-            if (weatherResultCache.containsKey(cacheRequest)) {
-                response.onSuccess(weatherResultCache.get(cacheRequest));
-            } else {
-
-            }
-            return true;
+            return getWeatherForecast(context, location.getLatitude(), location.getLongitude(), time, response, errorResponse);
         }
         return false;
+    }
+
+    public static boolean getWeatherForecast(Context context, double lat, double lon, long time, OnSuccessListener<WeatherResult> response, OnFailureListener errorResponse) {
+        long cacheTime = time / (1000 * 60 * 60 * 3);
+        String cacheRequest = String.format(Locale.UK, "F:T:%d Lat:%f.3 Lon:%f.3", cacheTime, lat, lon);
+        if (weatherResultCache.containsKey(cacheRequest)) {
+            response.onSuccess(weatherResultCache.get(cacheRequest));
+        } else {
+            fetchWeatherData(FORECAST_WEATHER, context, lat, lon, (JSONObject res) -> {
+                try {
+                    processForecastJson(res, lat, lon);
+                } catch (JSONException e) {
+                    errorResponse.onFailure(e);
+                }
+                getCachedWeatherRequest(cacheRequest, response, errorResponse);
+            }, errorResponse::onFailure);
+        }
+        return true;
+    }
+
+    public static boolean getWeatherCurrent(Context context, Location location, OnSuccessListener<WeatherResult> response, OnFailureListener errorResponse) {
+        if (location != null) {
+            return getWeatherCurrent(context, location.getLatitude(), location.getLongitude(), response, errorResponse);
+        }
+        return false;
+    }
+
+    public static boolean getWeatherCurrent(Context context, double lat, double lon, OnSuccessListener<WeatherResult> response, OnFailureListener errorResponse) {
+        return fetchWeatherData(CURRENT_WEATHER, context, lat, lon, (JSONObject res) -> {
+            try { response.onSuccess(new WeatherResult(res)); }
+            catch (JSONException e) { errorResponse.onFailure(e); }
+        }, errorResponse::onFailure);
+    }
+
+    public static boolean listWeatherForecast(Context context, Location location, OnSuccessListener<List<WeatherResult>> response, OnFailureListener errorResponse) {
+        if (location != null) {
+            return listWeatherForecast(context, location.getLatitude(), location.getLongitude(), response, errorResponse);
+        }
+        return false;
+    }
+
+    public static boolean listWeatherForecast(Context context, double lat, double lon, OnSuccessListener<List<WeatherResult>> response, OnFailureListener errorResponse) {
+        List<WeatherResult> list = new ArrayList<>();
+        long currTime = System.currentTimeMillis() / (1000 * 60 * 60 * 3);
+        String cacheRequest;
+        for (int i = 0; i < 40; i++) {
+            cacheRequest = String.format(Locale.UK, "F:T:%d Lat:%f.3 Lon:%f.3", currTime + i, lat, lon);
+            if (weatherResultCache.containsKey(cacheRequest)) {
+                list.add(weatherResultCache.get(cacheRequest));
+            } else {
+                fetchWeatherData(FORECAST_WEATHER, context, lat, lon, (JSONObject res) -> {
+                    try {
+                        processForecastJson(res, lat, lon);
+                    } catch (JSONException e) {
+                        errorResponse.onFailure(e);
+                    }
+                    getForecastList(lat, lon, response, errorResponse);
+                }, errorResponse::onFailure);
+            }
+        }
+        response.onSuccess(list);
+        return true;
+    }
+
+    private static void getForecastList(double lat, double lon, OnSuccessListener<List<WeatherResult>> response, OnFailureListener errorResponse) {
+        List<WeatherResult> list = new ArrayList<>();
+        long currTime = System.currentTimeMillis() / (1000 * 60 * 60 * 3);
+        String cacheRequest;
+        for (int i = 0; i < 40; i++) {
+            cacheRequest = String.format(Locale.UK, "F:T:%d Lat:%f.3 Lon:%f.3", currTime + i, lat, lon);
+            if (weatherResultCache.containsKey(cacheRequest)) {
+                list.add(weatherResultCache.get(cacheRequest));
+            } else {
+                errorResponse.onFailure(new NullPointerException());
+            }
+        }
+        response.onSuccess(list);
+    }
+
+    public static boolean getSearchLocation(Context context, Location location, String request, OnSuccessListener<MapLocation> response, OnFailureListener errorResponse) {
+        if (location != null) {
+            return getSearchLocation(context, location, request, response, errorResponse);
+        }
+        return false;
+    }
+
+    public static boolean getSearchLocation(Context context, double lat, double lon, String request, OnSuccessListener<MapLocation> response, OnFailureListener errorResponse) {
+        return fetchMapData(MAP_SEARCH, context, lat, lon, request, 1, (JSONObject res) -> {
+            try {
+                response.onSuccess(new MapLocation(res.getJSONArray("items").getJSONObject(0)));
+            } catch (JSONException e) {
+                errorResponse.onFailure(e);
+            }
+        }, errorResponse::onFailure);
+    }
+
+    public static boolean listSearchLocation(Context context, Location location, String request, int limit, OnSuccessListener<List<MapLocation>> response, OnFailureListener errorResponse) {
+        if (location != null) {
+            return listSearchLocation(context, location, request, limit, response, errorResponse);
+        }
+        return false;
+    }
+
+    public static boolean listSearchLocation(Context context, double lat, double lon, String request, int limit, OnSuccessListener<List<MapLocation>> response, OnFailureListener errorResponse) {
+        return fetchMapData(MAP_SEARCH, context, lat, lon, request, limit, (JSONObject res) -> {
+            try {
+                JSONArray items = res.getJSONArray("items");
+                List<MapLocation> list = new ArrayList<MapLocation>();
+                for (int i = 0; i < limit; i++) {
+                    list.add(new MapLocation(items.getJSONObject(i)));
+                }
+                response.onSuccess(list);
+            } catch (JSONException e) {
+                errorResponse.onFailure(e);
+            }
+        }, errorResponse::onFailure);
     }
 
     private static void makeRequest(Context context, String url, Response.Listener<JSONObject> response, Response.ErrorListener errorResponse) {
@@ -120,56 +264,55 @@ public class WebResourceAPI {
         requestQueue.add(jsonRequest);
     }
 
-    public static boolean fetchWeatherData(String resource, Context context, Location location,
-                                      Response.Listener<JSONObject> response, Response.ErrorListener errorResponse) {
-        if (location != null && resource != null) {
+    private static boolean fetchWeatherData(String resource, Context context, double lat, double lon,
+                                           Response.Listener<JSONObject> response, Response.ErrorListener errorResponse) {
+        if (resource != null) {
             if (Objects.equals(resource, CURRENT_WEATHER)) {
                 long time = System.currentTimeMillis() / (1000 * 60 * 10);
-                String cacheRequest = String.format(Locale.UK, "C:T:%d Lat:%f.3 Lon:%f.3", time, location.getLatitude(), location.getLongitude());
+                String cacheRequest = String.format(Locale.UK, "C:T:%d Lat:%f.3 Lon:%f.3", time, lat, lon);
                 if (weatherRequestCache.containsKey(cacheRequest)) {
                     response.onResponse(weatherRequestCache.get(cacheRequest));
                 } else {
-                    makeRequest(context, String.format(Locale.UK, resource, location.getLatitude(), location.getLongitude(), WEATHER_API_KEY),
-                            new CacheResponse<>(response, cacheRequest, weatherRequestCache), errorResponse);
+                    makeRequest(context, String.format(Locale.UK, resource, lat, lon, WEATHER_API_KEY), (JSONObject res) ->
+                        cacheResponse(res, response, cacheRequest, weatherRequestCache), errorResponse);
                 }
             } else if (Objects.equals(resource, FORECAST_WEATHER)) {
                 long time = System.currentTimeMillis() / (1000 * 60 * 60);
-                String cacheRequest = String.format(Locale.UK, "F:T:%d Lat:%f.3 Lon:%f.3", time, location.getLatitude(), location.getLongitude());
+                String cacheRequest = String.format(Locale.UK, "F:T:%d Lat:%f.3 Lon:%f.3", time, lat, lon);
                 if (weatherRequestCache.containsKey(cacheRequest)) {
                     response.onResponse(weatherRequestCache.get(cacheRequest));
                 } else {
-                    makeRequest(context, String.format(Locale.UK, resource, location.getLatitude(), location.getLongitude(), WEATHER_API_KEY),
-                            new CacheResponse<>(response, cacheRequest, weatherRequestCache), errorResponse);
+                    makeRequest(context, String.format(Locale.UK, resource, lat, lon, WEATHER_API_KEY),(JSONObject res) ->
+                        cacheResponse(res, response, cacheRequest, weatherRequestCache), errorResponse);
                 }
             }
             else {
-                makeRequest(context, String.format(Locale.UK, resource, location.getLatitude(), location.getLongitude(), WEATHER_API_KEY), response, errorResponse);
+                makeRequest(context, String.format(Locale.UK, resource, lat, lon, WEATHER_API_KEY), response, errorResponse);
             }
             return true;
         }
         return false;
     }
 
-    public static boolean fetchMapData(String resource, Context context, Location location, String request, int limit,
-                                      Response.Listener<JSONObject> response, Response.ErrorListener errorResponse) {
-        if (location != null) {
+    private static boolean fetchMapData(String resource, Context context, double lat, double lon, String request, int limit,
+                                       Response.Listener<JSONObject> response, Response.ErrorListener errorResponse) {
+        if (response != null) {
             if (Objects.equals(resource, MAP_SEARCH)) {
                 String cacheRequest = String.format(Locale.UK, "MS:Lat:%f.4 Lon:%f.4 Req:%s Lim:%d",
-                        location.getLatitude(), location.getLongitude(), request, limit);
+                        lat, lon, request, limit);
                 if (mapRequestCache.containsKey(cacheRequest)) {
                     response.onResponse(mapRequestCache.get(cacheRequest));
+                } else {
+                    makeRequest(context, String.format(Locale.UK, resource, lat, lon, request, limit, WEATHER_API_KEY),(JSONObject res) ->
+                                    cacheResponse(res, response, cacheRequest, weatherRequestCache), errorResponse);
                 }
-                makeRequest(context, String.format(Locale.UK, resource,
-                                location.getLatitude(), location.getLongitude(), request, limit, WEATHER_API_KEY),
-                        new CacheResponse<>(response, cacheRequest, mapRequestCache), errorResponse);
             } else {
-                makeRequest(context, String.format(Locale.UK, resource, location.getLatitude(), location.getLongitude(), request, limit, WEATHER_API_KEY),
+                makeRequest(context, String.format(Locale.UK, resource, lat, lon, request, limit, MAP_API_KEY),
                         response, errorResponse);
             }
             return true;
         }
         return false;
     }
-
 
 }
