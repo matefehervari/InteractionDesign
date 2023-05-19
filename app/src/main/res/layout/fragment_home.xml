@@ -80,15 +80,6 @@
                 android:weightSum="2">
 
                 <ImageButton
-                    android:id="@+id/HelpButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:background="@android:drawable/ic_menu_help"
-                    android:backgroundTint="@android:color/secondary_text_dark"
-                    tools:ignore="SpeakableTextPresentCheck" />
-
-                <ImageButton
                     android:id="@+id/InfoButton"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
@@ -124,7 +115,7 @@
             android:fontFamily="monospace"
             android:gravity="center_horizontal|center_vertical"
             android:text="25°"
-            android:textColor="@android:color/secondary_text_light_nodisable"
+            android:textColor="?android:attr/textColorPrimaryNoDisable"
             android:textSize="40sp"
             android:textStyle="bold" />
 
@@ -152,8 +143,10 @@
                 android:layout_height="fill_parent"
                 android:layout_weight="1"
                 android:foregroundTint="@android:color/secondary_text_light"
+                android:scaleX="0.5"
+                android:scaleY="0.5"
                 android:src="@drawable/rain_indicator_icon"
-                app:tint="@android:color/secondary_text_dark" />
+                app:tint="@color/indicator_off" />
 
             <ImageView
                 android:id="@+id/imageView19"
@@ -161,8 +154,10 @@
                 android:layout_height="fill_parent"
                 android:layout_weight="1"
                 android:foregroundTint="@android:color/secondary_text_light"
+                android:scaleX="0.5"
+                android:scaleY="0.5"
                 android:src="@drawable/wind_indicator_icon"
-                app:tint="@android:color/secondary_text_dark" />
+                app:tint="@color/indicator_off" />
 
             <ImageView
                 android:id="@+id/imageView20"
@@ -170,8 +165,10 @@
                 android:layout_height="fill_parent"
                 android:layout_weight="1"
                 android:foregroundTint="@android:color/secondary_text_light"
+                android:scaleX="0.5"
+                android:scaleY="0.5"
                 android:src="@drawable/coat_indicator_icon"
-                app:tint="@android:color/secondary_text_dark" />
+                app:tint="@color/indicator_off" />
 
             <ImageView
                 android:id="@+id/imageView21"
@@ -179,8 +176,10 @@
                 android:layout_height="fill_parent"
                 android:layout_weight="1"
                 android:foregroundTint="@android:color/secondary_text_light"
+                android:scaleX="0.5"
+                android:scaleY="0.5"
                 android:src="@drawable/light_indicator_icon"
-                app:tint="@android:color/secondary_text_dark" />
+                app:tint="@color/indicator_off" />
 
         </LinearLayout>
 
