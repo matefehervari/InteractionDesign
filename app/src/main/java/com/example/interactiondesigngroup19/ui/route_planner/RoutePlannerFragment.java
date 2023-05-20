@@ -24,6 +24,7 @@ import com.example.interactiondesigngroup19.R;
 import com.example.interactiondesigngroup19.databinding.FragmentRoutePlannerBinding;
 import com.example.interactiondesigngroup19.ui.calendar.CalendarEvent;
 import com.example.interactiondesigngroup19.ui.calendar.CalendarEventHandler;
+import com.example.interactiondesigngroup19.ui.home.HomeViewModel;
 import com.example.interactiondesigngroup19.ui.route_planner.RoutePlannerViewModel;
 import com.example.interactiondesigngroup19.ui.route_planner.RoutePlannerViewModel;
 import com.example.interactiondesigngroup19.ui.route_planner.RoutePlannerViewModel;
@@ -47,10 +48,6 @@ public class RoutePlannerFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-
-        final
-        RoutePlannerViewModel routePlannerViewModel =
-                new ViewModelProvider(this).get(RoutePlannerViewModel.class);
 
         binding = FragmentRoutePlannerBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
@@ -144,19 +141,24 @@ public class RoutePlannerFragment extends Fragment {
 
                 // Implement check for icons here.
 
-                rainIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), RoutePlannerViewModel.getRainTint()));
-                windIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), RoutePlannerViewModel.getWindTint()));
-                coatIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), RoutePlannerViewModel.getCoatTint()));
-                lightIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), RoutePlannerViewModel.getLightTint()));
+                /*
+                RoutePlannerViewModel model = new RoutePlannerViewModel(getActivity().getApplication());
+                model.callAPI(getActivity().getApplication());
 
-                rainIndicatorImage.setScaleX(RoutePlannerViewModel.getRainScale());
-                rainIndicatorImage.setScaleY(RoutePlannerViewModel.getRainScale());
-                windIndicatorImage.setScaleX(RoutePlannerViewModel.getWindScale());
-                windIndicatorImage.setScaleY(RoutePlannerViewModel.getWindScale());
-                coatIndicatorImage.setScaleX(RoutePlannerViewModel.getCoatScale());
-                coatIndicatorImage.setScaleY(RoutePlannerViewModel.getCoatScale());
-                lightIndicatorImage.setScaleX(RoutePlannerViewModel.getLightScale());
-                lightIndicatorImage.setScaleY(RoutePlannerViewModel.getLightScale());
+                rainIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getRainTint()));
+                windIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getWindTint()));
+                coatIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getCoatTint()));
+                lightIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getLightTint()));
+
+                rainIndicatorImage.setScaleX(model.getRainScale());
+                rainIndicatorImage.setScaleY(model.getRainScale());
+                windIndicatorImage.setScaleX(model.getWindScale());
+                windIndicatorImage.setScaleY(model.getWindScale());
+                coatIndicatorImage.setScaleX(model.getCoatScale());
+                coatIndicatorImage.setScaleY(model.getCoatScale());
+                lightIndicatorImage.setScaleX(model.getLightScale());
+                lightIndicatorImage.setScaleY(model.getLightScale());
+                */
 
             }
         });
@@ -165,20 +167,25 @@ public class RoutePlannerFragment extends Fragment {
             @Override
             public void onClick(View view) {
 
-                // Indicator Icons
-                rainIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), RoutePlannerViewModel.getRainTint()));
-                windIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), RoutePlannerViewModel.getWindTint()));
-                coatIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), RoutePlannerViewModel.getCoatTint()));
-                lightIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), RoutePlannerViewModel.getLightTint()));
+                /*
+                RoutePlannerViewModel model = new RoutePlannerViewModel(getActivity().getApplication());
+                model.callAPI(getActivity().getApplication());
 
-                rainIndicatorImage.setScaleX(RoutePlannerViewModel.getRainScale());
-                rainIndicatorImage.setScaleY(RoutePlannerViewModel.getRainScale());
-                windIndicatorImage.setScaleX(RoutePlannerViewModel.getWindScale());
-                windIndicatorImage.setScaleY(RoutePlannerViewModel.getWindScale());
-                coatIndicatorImage.setScaleX(RoutePlannerViewModel.getCoatScale());
-                coatIndicatorImage.setScaleY(RoutePlannerViewModel.getCoatScale());
-                lightIndicatorImage.setScaleX(RoutePlannerViewModel.getLightScale());
-                lightIndicatorImage.setScaleY(RoutePlannerViewModel.getLightScale());
+                // Indicator Icons
+                rainIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getRainTint()));
+                windIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getWindTint()));
+                coatIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getCoatTint()));
+                lightIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getLightTint()));
+
+                rainIndicatorImage.setScaleX(model.getRainScale());
+                rainIndicatorImage.setScaleY(model.getRainScale());
+                windIndicatorImage.setScaleX(model.getWindScale());
+                windIndicatorImage.setScaleY(model.getWindScale());
+                coatIndicatorImage.setScaleX(model.getCoatScale());
+                coatIndicatorImage.setScaleY(model.getCoatScale());
+                lightIndicatorImage.setScaleX(model.getLightScale());
+                lightIndicatorImage.setScaleY(model.getLightScale());
+                */
 
                 // Get data and send off to calendar
 
@@ -204,8 +211,6 @@ public class RoutePlannerFragment extends Fragment {
 
                 ZoneId zoneId = ZoneId.systemDefault(); // or: ZoneId.of("Europe/Oslo");
                 long epoch = startDateTime.atZone(zoneId).toEpochSecond();
-
-
 
                 notesEditText.getText().clear();
 

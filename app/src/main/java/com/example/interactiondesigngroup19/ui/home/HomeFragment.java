@@ -69,6 +69,7 @@ public class HomeFragment extends Fragment {
                 model.getText().observe(getViewLifecycleOwner(), textView::setText);
                 mainImage.setImageResource(model.getImageID());
 
+                /*
                 rainIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getRainTint()));
                 windIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getWindTint()));
                 coatIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getCoatTint()));
@@ -82,6 +83,7 @@ public class HomeFragment extends Fragment {
                 coatIndicatorImage.setScaleY(model.getCoatScale());
                 lightIndicatorImage.setScaleX(model.getLightScale());
                 lightIndicatorImage.setScaleY(model.getLightScale());
+                 */
 
             }
         });
