@@ -1,66 +1,60 @@
 package com.example.interactiondesigngroup19.ui.route_planner;
 
+import android.Manifest;
+import android.app.Application;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.location.Location;
 
 import androidx.annotation.NonNull;
+
+import android.app.Application;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.location.LocationManager;
+
+import androidx.core.app.ActivityCompat;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.*;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProvider;
 
+import com.example.interactiondesigngroup19.MainActivity;
 import com.example.interactiondesigngroup19.R;
 import com.example.interactiondesigngroup19.apis.WebResourceAPI;
+import com.example.interactiondesigngroup19.ui.calendar.CalendarEvent;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 
-public class RoutePlannerViewModel extends ViewModel {
+public class RoutePlannerViewModel extends ViewModelProvider.NewInstanceFactory {
 
-    private final MutableLiveData<String> mText;
+    private MutableLiveData<String> mText;
+    private int mImageID;
 
-    private static int rainTint, windTint, coatTint, lightTint;
-    private static float rainScale, windScale, coatScale, lightScale;
+    private Location location;
 
-    private static long time;
+    private Context currentContext;
+    private long time;
 
-    public RoutePlannerViewModel() {
+    private OnSuccessListener<WebResourceAPI.WeatherResult> weatherResultListener;
+    private OnFailureListener failureListener;
+    private Application mApplication;
+    private int rainTint, windTint, coatTint, lightTint;
+    private float rainScale, windScale, coatScale, lightScale;
+
+    public RoutePlannerViewModel(Application application) {
         mText = new MutableLiveData<>();
 
-        // Get context for the current request (N.B. but not used by getWeatherForecast() ?)
-        Context currentContext = null;
-
-        // Get location from somewhere
-        Location currentLocation = new Location("");
-        currentLocation.setLatitude(52.2053844);
-        currentLocation.setLongitude(0.1189721);
-
-        // Get 'time' as a long?
-        time = 0;
-
-        OnSuccessListener<WebResourceAPI.WeatherResult> weatherResultListener = new OnSuccessListener<WebResourceAPI.WeatherResult>() {
-            @Override
-            public void onSuccess(WebResourceAPI.WeatherResult weatherResult) {
-                processWeatherRequest(weatherResult);
-            }
-        };
-
-        // Deal with failure of API request?
-        OnFailureListener failureListener = new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-
-            }
-        };
-
-        WebResourceAPI.getWeatherForecast(currentContext, currentLocation, time, weatherResultListener, failureListener);
-
         // processWeatherRequest();
-
     }
 
-    public static void processWeatherRequest(WebResourceAPI.WeatherResult weatherResult) {
+    public void processWeatherRequest(WebResourceAPI.WeatherResult weatherResult) {
 
         float probOfPrecipiation = weatherResult.pop;
         float volumeOfPrecipitation = weatherResult.rain;
@@ -71,6 +65,7 @@ public class RoutePlannerViewModel extends ViewModel {
         Instant currentTime = Instant.now();
         Instant sunriseTime = Instant.now();
         Instant sunsetTime = Instant.now();
+
 
         // Deals with boolean indicator icon values
         boolean rainIndicator = volumeOfPrecipitation > 0.5 && probOfPrecipiation > 0.15;
@@ -94,32 +89,68 @@ public class RoutePlannerViewModel extends ViewModel {
         return mText;
     }
 
-    public static int getRainTint() {
+    public int getImageID() {
+        return mImageID;
+    }
+
+    public int getRainTint() {
         return rainTint;
     }
-    public static int getWindTint() {
+    public int getWindTint() {
         return windTint;
     }
-    public static int getCoatTint() {
+    public int getCoatTint() {
         return coatTint;
     }
-    public static int getLightTint() {
+    public int getLightTint() {
         return lightTint;
     }
 
-    public static float getRainScale() {
+    public float getRainScale() {
         return rainScale;
     }
-    public static float getWindScale() {
+    public float getWindScale() {
         return windScale;
     }
-    public static float getCoatScale() {
+    public float getCoatScale() {
         return coatScale;
     }
-    public static float getLightScale() {
+    public float getLightScale() {
         return lightScale;
     }
 
-    public void setTime(long Time){time = Time;}
+    public void callAPI(Application application) {
+        mApplication = application;
+        // Get context for the current request (N.B. but not used by getWeatherForecast() ?)
+        Context currentContext = mApplication.getApplicationContext();
 
+        // Get location from somewhere
+        Location location = new Location("");
+        location.setLatitude(52.2053844);
+        location.setLongitude(0.1189721);
+        ;
+
+        // Get 'time' as a long?
+        long time = System.currentTimeMillis();
+
+        OnSuccessListener<WebResourceAPI.WeatherResult> weatherResultListener = new OnSuccessListener<WebResourceAPI.WeatherResult>() {
+            @Override
+            public void onSuccess(WebResourceAPI.WeatherResult weatherResult) {
+                processWeatherRequest(weatherResult);
+            }
+        };
+
+        // Deal with failure of API request?
+        OnFailureListener failureListener = new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                rainTint = R.color.indicator_off;
+                windTint = R.color.indicator_off;
+                coatTint = R.color.indicator_off;
+                lightTint = R.color.indicator_off;
+            }
+        };
+
+        WebResourceAPI.getWeatherForecast(currentContext, location, time, weatherResultListener, failureListener);
+    }
 }

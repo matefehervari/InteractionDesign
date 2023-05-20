@@ -261,6 +261,7 @@ public class WebResourceAPI {
     private static void makeRequest(Context context, String url, Response.Listener<JSONObject> response, Response.ErrorListener errorResponse) {
         ensureQueue(context);
         JsonObjectRequest jsonRequest = new JsonObjectRequest( Request.Method.GET, url,null, response, errorResponse);
+        System.out.println(jsonRequest.toString());
         requestQueue.add(jsonRequest);
     }
 
