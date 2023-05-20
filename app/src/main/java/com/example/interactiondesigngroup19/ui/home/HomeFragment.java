@@ -1,5 +1,10 @@
 package com.example.interactiondesigngroup19.ui.home;
 
+import android.Manifest;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.media.Image;
 import android.os.Bundle;
 import android.provider.ContactsContract;
@@ -12,14 +17,17 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDirections;
 import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.example.interactiondesigngroup19.MainActivity;
 import com.example.interactiondesigngroup19.R;
 import com.example.interactiondesigngroup19.databinding.FragmentHomeBinding;
 
@@ -29,8 +37,6 @@ public class HomeFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        HomeViewModel homeViewModel =
-                new ViewModelProvider(this).get(HomeViewModel.class);
 
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
@@ -55,11 +61,14 @@ public class HomeFragment extends Fragment {
         refresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                HomeViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
-                mainImage.setImageResource(HomeViewModel.getImageID());
 
                 // Changes the attributes of the indicator images to indicate on/off
-                HomeViewModel model = new HomeViewModel();
+                HomeViewModel model = new HomeViewModel(getActivity().getApplication());
+                model.callAPI(getActivity().getApplication());
+
+                model.getText().observe(getViewLifecycleOwner(), textView::setText);
+                mainImage.setImageResource(model.getImageID());
+
                 rainIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getRainTint()));
                 windIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getWindTint()));
                 coatIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getCoatTint()));

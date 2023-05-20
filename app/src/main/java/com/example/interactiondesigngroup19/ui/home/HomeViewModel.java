@@ -1,66 +1,55 @@
 package com.example.interactiondesigngroup19.ui.home;
 
-import static com.example.interactiondesigngroup19.apis.WebResourceAPI.CURRENT_WEATHER;
-
+import android.Manifest;
+import android.app.Application;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.location.Location;
 
 import androidx.annotation.NonNull;
+
+import android.app.Application;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.location.LocationManager;
+
+import androidx.core.app.ActivityCompat;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.*;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProvider;
 
+import com.example.interactiondesigngroup19.MainActivity;
 import com.example.interactiondesigngroup19.R;
 import com.example.interactiondesigngroup19.apis.WebResourceAPI;
+import com.example.interactiondesigngroup19.ui.calendar.CalendarEvent;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-import org.json.JSONException;
-
 import java.time.Instant;
 
-public class HomeViewModel extends ViewModel {
+public class HomeViewModel extends ViewModelProvider.NewInstanceFactory {
 
-    private static MutableLiveData<String> mText;
-    private static int mImageID;
+    private MutableLiveData<String> mText;
+    private int mImageID;
 
+    private Location location;
+
+    private Context currentContext;
+    private long time;
+
+    private OnSuccessListener<WebResourceAPI.WeatherResult> weatherResultListener;
+    private OnFailureListener failureListener;
+    private Application mApplication;
     private int rainTint, windTint, coatTint, lightTint;
     private float rainScale, windScale, coatScale, lightScale;
 
-    public HomeViewModel() {
+    public HomeViewModel(Application application) {
         mText = new MutableLiveData<>();
-
-        // Get context for the current request (N.B. but not used by getWeatherForecast() ?)
-        Context currentContext = null;
-
-        // Get location from somewhere
-        Location currentLocation = new Location("");
-        currentLocation.setLatitude(52.2053844);
-        currentLocation.setLongitude(0.1189721);
-
-        // Get 'time' as a long?
-        long time = System.currentTimeMillis();
-
-        OnSuccessListener<WebResourceAPI.WeatherResult> weatherResultListener = new OnSuccessListener<WebResourceAPI.WeatherResult>() {
-            @Override
-            public void onSuccess(WebResourceAPI.WeatherResult weatherResult) {
-                processWeatherRequest(weatherResult);
-            }
-        };
-
-        // Deal with failure of API request?
-        OnFailureListener failureListener = new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-
-                rainTint = R.color.indicator_off;
-                windTint = R.color.indicator_off;
-                coatTint = R.color.indicator_off;
-                lightTint = R.color.indicator_off;
-            }
-        };
-
-        WebResourceAPI.getWeatherForecast(currentContext, currentLocation, time, weatherResultListener, failureListener);
 
         // processWeatherRequest();
     }
@@ -119,11 +108,11 @@ public class HomeViewModel extends ViewModel {
         lightScale = lightIndicator ? 1.0f : 0.5f;
     }
 
-    public static LiveData<String> getText() {
+    public LiveData<String> getText() {
         return mText;
     }
 
-    public static int getImageID() {
+    public int getImageID() {
         return mImageID;
     }
 
@@ -151,5 +140,40 @@ public class HomeViewModel extends ViewModel {
     }
     public float getLightScale() {
         return lightScale;
+    }
+
+    public void callAPI(Application application) {
+        mApplication = application;
+        // Get context for the current request (N.B. but not used by getWeatherForecast() ?)
+        Context currentContext = mApplication.getApplicationContext();
+
+        // Get location from somewhere
+        Location location = new Location("");
+        location.setLatitude(52.2053844);
+        location.setLongitude(0.1189721);
+        ;
+
+        // Get 'time' as a long?
+        long time = System.currentTimeMillis();
+
+        OnSuccessListener<WebResourceAPI.WeatherResult> weatherResultListener = new OnSuccessListener<WebResourceAPI.WeatherResult>() {
+            @Override
+            public void onSuccess(WebResourceAPI.WeatherResult weatherResult) {
+                processWeatherRequest(weatherResult);
+            }
+        };
+
+        // Deal with failure of API request?
+        OnFailureListener failureListener = new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                rainTint = R.color.indicator_off;
+                windTint = R.color.indicator_off;
+                coatTint = R.color.indicator_off;
+                lightTint = R.color.indicator_off;
+            }
+        };
+
+        WebResourceAPI.getWeatherForecast(currentContext, location, time, weatherResultListener, failureListener);
     }
 }
