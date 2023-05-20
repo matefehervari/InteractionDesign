@@ -9,24 +9,37 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
 import com.example.interactiondesigngroup19.R;
 import com.example.interactiondesigngroup19.databinding.FragmentRoutePlannerBinding;
+import com.example.interactiondesigngroup19.ui.calendar.CalendarEvent;
+import com.example.interactiondesigngroup19.ui.calendar.CalendarEventHandler;
+import com.example.interactiondesigngroup19.ui.route_planner.RoutePlannerViewModel;
+import com.example.interactiondesigngroup19.ui.route_planner.RoutePlannerViewModel;
+import com.example.interactiondesigngroup19.ui.route_planner.RoutePlannerViewModel;
+import com.example.interactiondesigngroup19.ui.util.Indicator;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 
 public class RoutePlannerFragment extends Fragment {
 
@@ -61,6 +74,11 @@ public class RoutePlannerFragment extends Fragment {
 
         final ImageButton submitButton = binding.submitEventButton;
         final ImageButton calendarButton = binding.calendarButton;
+
+        final ImageView rainIndicatorImage = binding.rainIndicator;
+        final ImageView windIndicatorImage = binding.windIndicator;
+        final ImageView coatIndicatorImage = binding.coatIndicator;
+        final ImageView lightIndicatorImage = binding.lightIndicator;
 
         Integer[] hourList = new Integer[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23};
 
@@ -126,12 +144,44 @@ public class RoutePlannerFragment extends Fragment {
 
                 // Implement check for icons here.
 
+                rainIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), RoutePlannerViewModel.getRainTint()));
+                windIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), RoutePlannerViewModel.getWindTint()));
+                coatIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), RoutePlannerViewModel.getCoatTint()));
+                lightIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), RoutePlannerViewModel.getLightTint()));
+
+                rainIndicatorImage.setScaleX(RoutePlannerViewModel.getRainScale());
+                rainIndicatorImage.setScaleY(RoutePlannerViewModel.getRainScale());
+                windIndicatorImage.setScaleX(RoutePlannerViewModel.getWindScale());
+                windIndicatorImage.setScaleY(RoutePlannerViewModel.getWindScale());
+                coatIndicatorImage.setScaleX(RoutePlannerViewModel.getCoatScale());
+                coatIndicatorImage.setScaleY(RoutePlannerViewModel.getCoatScale());
+                lightIndicatorImage.setScaleX(RoutePlannerViewModel.getLightScale());
+                lightIndicatorImage.setScaleY(RoutePlannerViewModel.getLightScale());
+
             }
         });
 
         calendarButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                // Indicator Icons
+                rainIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), RoutePlannerViewModel.getRainTint()));
+                windIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), RoutePlannerViewModel.getWindTint()));
+                coatIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), RoutePlannerViewModel.getCoatTint()));
+                lightIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), RoutePlannerViewModel.getLightTint()));
+
+                rainIndicatorImage.setScaleX(RoutePlannerViewModel.getRainScale());
+                rainIndicatorImage.setScaleY(RoutePlannerViewModel.getRainScale());
+                windIndicatorImage.setScaleX(RoutePlannerViewModel.getWindScale());
+                windIndicatorImage.setScaleY(RoutePlannerViewModel.getWindScale());
+                coatIndicatorImage.setScaleX(RoutePlannerViewModel.getCoatScale());
+                coatIndicatorImage.setScaleY(RoutePlannerViewModel.getCoatScale());
+                lightIndicatorImage.setScaleX(RoutePlannerViewModel.getLightScale());
+                lightIndicatorImage.setScaleY(RoutePlannerViewModel.getLightScale());
+
+                // Get data and send off to calendar
+
                 String startHour = hourSpinner.getSelectedItem().toString();
                 String startMinute = minuteSpinner.getSelectedItem().toString();
                 String[] date = dateSpinner.getSelectedItem().toString().split("/");
@@ -148,8 +198,19 @@ public class RoutePlannerFragment extends Fragment {
 
                 String notes = notesEditText.getText().toString();
 
+                LocalDate startDate = LocalDate.of(year, month, day);
+
+                LocalDateTime startDateTime = LocalDateTime.of(startDate ,startTime);
+
+                ZoneId zoneId = ZoneId.systemDefault(); // or: ZoneId.of("Europe/Oslo");
+                long epoch = startDateTime.atZone(zoneId).toEpochSecond();
+
+
 
                 notesEditText.getText().clear();
+
+                CalendarEventHandler eventHandler = new CalendarEventHandler(getContext());
+                eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>());
 
             }
         });

@@ -30,6 +30,7 @@ public class CalendarEventHandler {
 
     public void addEvent(LocalDateTime startDateTime, LocalTime endTime, List<Indicator> indicators) {
         addSortedEvent(new CalendarEvent(startDateTime, endTime, indicators));
+        eventReadWriter.WriteEvents(events);
     }
 
     public List<CalendarEvent> getEvents() {
