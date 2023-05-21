@@ -1,8 +1,8 @@
 package com.example.interactiondesigngroup19.ui.util;
 
-public class Indicator {
+import java.io.Serializable;
 
-
+public class Indicator implements Serializable {
     private final int iconHandle;
     private final int colorHandle;
 

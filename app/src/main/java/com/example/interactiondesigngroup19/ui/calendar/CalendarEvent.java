@@ -11,16 +11,25 @@ import java.util.List;
 import java.util.Locale;
 
 public class CalendarEvent implements Serializable {
-
+    public static final int NO_DATE_ID = -1;
     private final LocalDateTime startDateTime;
     private final LocalTime endTime;
-
     private final List<Indicator> indicators;
+    private final String note;
+    private int dateId;
 
     public CalendarEvent(LocalDateTime startTime, LocalTime endTime, List<Indicator> indicators) {
         this.startDateTime = startTime;
         this.endTime = endTime;
         this.indicators = indicators;
+        this.note = "Calendar Event";
+    }
+
+    public CalendarEvent(LocalDateTime startTime, LocalTime endTime, List<Indicator> indicators, String note) {
+        this.startDateTime = startTime;
+        this.endTime = endTime;
+        this.indicators = indicators;
+        this.note = note;
     }
 
     public String getStartTimeString() {
@@ -45,6 +54,16 @@ public class CalendarEvent implements Serializable {
 
     private String padZero(int integer) {
         return String.format(Locale.ENGLISH,"%02d", integer);
+    }
+
+    public String getNote() { return note; }
+
+    public void setDateId(int dateId) {
+        this.dateId = dateId;
+    }
+
+    public int getDateId() {
+        return dateId;
     }
 
     @NonNull
