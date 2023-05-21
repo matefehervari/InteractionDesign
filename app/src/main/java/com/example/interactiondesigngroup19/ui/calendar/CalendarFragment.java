@@ -14,16 +14,19 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.interactiondesigngroup19.R;
 import com.example.interactiondesigngroup19.databinding.FragmentCalendarBinding;
+import com.example.interactiondesigngroup19.ui.util.Indicator;
 import com.google.android.material.card.MaterialCardView;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Locale;
 
 public class CalendarFragment extends Fragment {
@@ -31,10 +34,11 @@ public class CalendarFragment extends Fragment {
     private FragmentCalendarBinding binding;
     private CalendarEventHandler eventHandler;
     private LinearLayout fragmentLinearLayout;
+    private CalendarViewModel calendarViewModel;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        CalendarViewModel calendarViewModel =
+        calendarViewModel =
                 new ViewModelProvider(this).get(CalendarViewModel.class);
 
         binding = FragmentCalendarBinding.inflate(inflater, container, false);
@@ -58,7 +62,6 @@ public class CalendarFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 CalendarEvent calendarEvent = eventHandler.addRandomEvent();
-//                System.out.println(eventHandler);
                 fragmentLinearLayout.addView(createEventCard(calendarEvent));
             }
         });
@@ -66,6 +69,7 @@ public class CalendarFragment extends Fragment {
 
     private void createEventCards() {
         LocalDate lastDate = null;
+        int dateId = CalendarEvent.NO_DATE_ID;
         for (CalendarEvent event :
                 eventHandler.getEvents()) {
             LocalDate eventDate = event.getStartDateTime().toLocalDate();
@@ -74,14 +78,17 @@ public class CalendarFragment extends Fragment {
                 TextView dateTextView = new TextView(this.getContext());
                 dateTextView.setText(eventDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.UK)));
                 LinearLayout.LayoutParams dateTextLayout = new LinearLayout.LayoutParams(-1, -1); // match-parent, match-parent
-                dateTextLayout.setMargins(15, 0, 0, 0);
+                dateTextLayout.setMargins(15, 100, 0, 0);
                 dateTextView.setLayoutParams(dateTextLayout);
                 dateTextView.setTextSize(20);
+                dateId = View.generateViewId();
+                dateTextView.setId(dateId);
 
                 fragmentLinearLayout.addView(dateTextView);
 
                 lastDate = eventDate;
             }
+            event.setDateId(dateId);
             fragmentLinearLayout.addView(createEventCard(event));
         }
     }
@@ -106,6 +113,12 @@ public class CalendarFragment extends Fragment {
             public void onClick(View v) {
                 ((ViewManager) v.getParent()).removeView(v);
                 eventHandler.removeEvent(event);
+                if (!eventHandler.eventsWithSameDate(event)) {
+                    View dateTextView = binding.calendarLinearLayout.findViewById(event.getDateId());
+                    if (dateTextView != null) {
+                        ((ViewManager) dateTextView.getParent()).removeView(dateTextView);
+                    }
+                }
             }
         });
 
@@ -127,7 +140,7 @@ public class CalendarFragment extends Fragment {
         LinearLayout.LayoutParams noteParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         note.setLayoutParams(noteParams);
         note.setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Headline6);
-        note.setText("Note");
+        note.setText(event.getNote());
 
         TextView startTime = new TextView(this.getContext());
         startTime.setTextSize(15);
@@ -154,50 +167,33 @@ public class CalendarFragment extends Fragment {
         indicatorLayout.setLayoutParams(indicatorLayoutParams);
         indicatorLayout.setPadding(10, 10, 10, 10);
 
-        // Light
-        ImageView lightIndicator = new ImageView(this.getContext());
-        RelativeLayout.LayoutParams lightParams = new RelativeLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
-        lightParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-        lightIndicator.setLayoutParams(lightParams);
-        lightIndicator.setImageDrawable(this.getContext().getDrawable(R.drawable.light_indicator_icon));
-        lightIndicator.setAdjustViewBounds(true);
-        int lightId = View.generateViewId();
-        lightIndicator.setId(lightId);
+        // indicators
+        List<Indicator> indicators = event.getIndicators();
+        ListIterator<Indicator> indicatorIterator = indicators.listIterator(indicators.size());
 
-        indicatorLayout.addView(lightIndicator);
+        int imageId = View.generateViewId();
+        if (indicatorIterator.hasPrevious()) {
+            Indicator indicator = indicatorIterator.previous();
+            ImageView image = new ImageView(this.getContext());
+            RelativeLayout.LayoutParams imageParams = new RelativeLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
+            imageParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+            image.setLayoutParams(imageParams);
+            image.setImageDrawable(this.getContext().getDrawable(indicator.getIconHandle()));
+            image.setAdjustViewBounds(true);
+            image.setColorFilter(ContextCompat.getColor(this.getContext(), indicator.getColorHandle()));
+            image.setId(imageId);
 
-        // Coat
-        ImageView coatIndicator = new ImageView(this.getContext());
-        RelativeLayout.LayoutParams coatParams = new RelativeLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
-        coatParams.addRule(RelativeLayout.LEFT_OF, lightId);
-        coatIndicator.setLayoutParams(coatParams);
-        coatIndicator.setImageDrawable(this.getContext().getDrawable(R.drawable.coat_indicator_icon));
-        coatIndicator.setAdjustViewBounds(true);
-        int coatId = View.generateViewId();
-        coatIndicator.setId(coatId);
+            indicatorLayout.addView(image);
 
-        indicatorLayout.addView(coatIndicator);
+        }
+        while (indicatorIterator.hasPrevious()) {
+            Indicator indicator = indicatorIterator.previous();
+            ImageView image = makeIndicatorImageView(indicator, imageId);
+            imageId = View.generateViewId();
+            image.setId(imageId);
 
-        // Wind
-        ImageView windIndicator = new ImageView(this.getContext());
-        RelativeLayout.LayoutParams windParams = new RelativeLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
-        windParams.addRule(RelativeLayout.LEFT_OF, coatId);
-        windIndicator.setLayoutParams(windParams);
-        windIndicator.setImageDrawable(this.getContext().getDrawable(R.drawable.wind_indicator_icon));
-        windIndicator.setAdjustViewBounds(true);
-        int windId = View.generateViewId();
-        windIndicator.setId(windId);
-
-        indicatorLayout.addView(windIndicator);
-
-        // Rain
-        ImageView rainIndicator = new ImageView(this.getContext());
-        RelativeLayout.LayoutParams rainParams = new RelativeLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
-        rainParams.addRule(RelativeLayout.LEFT_OF, windId);
-        rainIndicator.setLayoutParams(rainParams);
-        rainIndicator.setImageDrawable(this.getContext().getDrawable(R.drawable.rain_indicator_icon));
-        rainIndicator.setAdjustViewBounds(true);
-        indicatorLayout.addView(rainIndicator);
+            indicatorLayout.addView(image);
+        }
 
         cardLayout.addView(textLayout);
         cardLayout.addView(indicatorLayout);
@@ -205,6 +201,18 @@ public class CalendarFragment extends Fragment {
         cv.addView(cardLayout);
 
         return cv;
+    }
+
+    public ImageView makeIndicatorImageView(Indicator indicator, int prevId) {
+        ImageView image = new ImageView(this.getContext());
+        RelativeLayout.LayoutParams imageParams = new RelativeLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
+        imageParams.addRule(RelativeLayout.LEFT_OF, prevId);
+        image.setLayoutParams(imageParams);
+        image.setImageDrawable(this.getContext().getDrawable(indicator.getIconHandle()));
+        image.setColorFilter(ContextCompat.getColor(this.getContext(), indicator.getColorHandle()));
+        image.setAdjustViewBounds(true);
+
+        return image;
     }
 
     @Override

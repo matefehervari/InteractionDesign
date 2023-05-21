@@ -29,6 +29,7 @@ import com.example.interactiondesigngroup19.ui.route_planner.RoutePlannerViewMod
 import com.example.interactiondesigngroup19.ui.route_planner.RoutePlannerViewModel;
 import com.example.interactiondesigngroup19.ui.route_planner.RoutePlannerViewModel;
 import com.example.interactiondesigngroup19.ui.util.Indicator;
+import com.example.interactiondesigngroup19.ui.util.IndicatorHelper;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -215,7 +216,7 @@ public class RoutePlannerFragment extends Fragment {
                 notesEditText.getText().clear();
 
                 CalendarEventHandler eventHandler = new CalendarEventHandler(getContext());
-                eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>());
+                eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes);
 
             }
         });
