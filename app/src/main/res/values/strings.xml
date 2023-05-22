@@ -3,4 +3,6 @@
     <string name="title_home">Home</string>
     <string name="title_route_planner">Route Planner</string>
     <string name="title_calendar">Calendar</string>
+    <string name="title_activity_search">SearchActivity</string>
+    <string name="title_activity_location_search">LocationSearchActivity</string>
 </resources>

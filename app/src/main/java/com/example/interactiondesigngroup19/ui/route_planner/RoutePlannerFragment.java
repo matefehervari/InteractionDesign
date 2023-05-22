@@ -67,8 +67,6 @@ public class RoutePlannerFragment extends Fragment {
         final Spinner hourSpinner = binding.HourSpinner;
         final Spinner minuteSpinner = binding.MinuteSpinner;
         final Spinner dateSpinner = binding.DateSpinner;
-        final Spinner endHourSpinner = binding.endHourSpinner;
-        final Spinner endMinuteSpinner = binding.endMinuteSpinner;
 
         final EditText notesEditText = binding.notesEditText;
 
@@ -125,9 +123,6 @@ public class RoutePlannerFragment extends Fragment {
         adapter3.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         dateSpinner.setAdapter(adapter3);
-
-        endHourSpinner.setAdapter(adapter1);
-        endMinuteSpinner.setAdapter(adapter2);
 
 
         submitButton.setOnClickListener(new View.OnClickListener() {
@@ -206,10 +201,7 @@ public class RoutePlannerFragment extends Fragment {
 
                 LocalTime startTime = LocalTime.of(Integer.parseInt(startHour), Integer.parseInt(startMinute), 0);
 
-                String endHour = endHourSpinner.getSelectedItem().toString();
-                String endMinute = endMinuteSpinner.getSelectedItem().toString();
-
-                LocalTime endTime = LocalTime.of(Integer.parseInt(endHour), Integer.parseInt(endMinute), 0);
+                LocalTime endTime = LocalTime.of(0, 0, 0);
 
                 String notes = notesEditText.getText().toString();
 
