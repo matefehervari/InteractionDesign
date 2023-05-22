@@ -65,32 +65,47 @@
                     android:padding="10dp">
 
                     <ImageView
+                        android:id="@+id/rain_icon"
                         android:layout_width="50dp"
                         android:layout_height="fill_parent"
-                        android:layout_toLeftOf="@id/wind_icon"
+                        android:layout_alignParentLeft="true"
                         android:src="@drawable/rain_indicator_icon" />
 
                     <ImageView
                         android:id="@+id/wind_icon"
                         android:layout_width="50dp"
                         android:layout_height="fill_parent"
-                        android:layout_toLeftOf="@id/coat_icon"
+                        android:layout_toRightOf="@id/rain_icon"
                         android:src="@drawable/wind_indicator_icon" />
 
                     <ImageView
                         android:id="@+id/coat_icon"
                         android:layout_width="50dp"
                         android:layout_height="fill_parent"
-                        android:layout_toLeftOf="@id/light_icon"
+                        android:layout_toRightOf="@id/wind_icon"
                         android:src="@drawable/coat_indicator_icon" />
 
                     <ImageView
                         android:id="@+id/light_icon"
                         android:layout_width="50dp"
                         android:layout_height="fill_parent"
-                        android:layout_alignParentRight="true"
+                        android:layout_toRightOf="@id/coat_icon"
                         android:src="@drawable/light_indicator_icon" />
+
+                    <ImageButton
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/close"
+                        android:backgroundTint="@color/red"
+                        android:padding="5dp"
+                        android:layout_alignParentRight="true"
+                        android:layout_alignParentTop="true">
+                    </ImageButton>
+
                 </RelativeLayout>
+
+
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
