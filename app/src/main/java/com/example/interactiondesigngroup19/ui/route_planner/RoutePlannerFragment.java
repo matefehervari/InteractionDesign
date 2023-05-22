@@ -23,6 +23,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
 import com.example.interactiondesigngroup19.R;
+import com.example.interactiondesigngroup19.apis.LocationAPI;
+import com.example.interactiondesigngroup19.apis.WebResourceAPI;
 import com.example.interactiondesigngroup19.databinding.FragmentRoutePlannerBinding;
 import com.example.interactiondesigngroup19.ui.calendar.CalendarEvent;
 import com.example.interactiondesigngroup19.ui.calendar.CalendarEventHandler;
@@ -42,8 +44,11 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
 
 public class RoutePlannerFragment extends Fragment {
 
@@ -56,6 +61,8 @@ public class RoutePlannerFragment extends Fragment {
         View root = binding.getRoot();
 
         onViewCreated(this.getView(), savedInstanceState);
+
+        LocationAPI.ensureLocationClientAndRequester(getActivity());
 
         return root;
     }
@@ -72,6 +79,15 @@ public class RoutePlannerFragment extends Fragment {
 
         final EditText notesEditText = binding.notesEditText;
 
+        final EditText startEditText = binding.startEditText;
+        final EditText endEditText = binding.endEditText;
+
+        final ImageButton startSearchButton = binding.startSearchButton;
+        final ImageButton endSearchButton = binding.endSearchButton;
+
+        final Spinner startSpinner = binding.startSpinner;
+        final Spinner endSpinner = binding.endSpinner;
+
         final ImageButton submitButton = binding.submitEventButton;
         final ImageButton calendarButton = binding.calendarButton;
 
@@ -79,6 +95,9 @@ public class RoutePlannerFragment extends Fragment {
         final ImageView windIndicatorImage = binding.windIndicator;
         final ImageView coatIndicatorImage = binding.coatIndicator;
         final ImageView lightIndicatorImage = binding.lightIndicator;
+
+        final Map<String, WebResourceAPI.MapLocation> startMap = new HashMap<>();
+        final Map<String, WebResourceAPI.MapLocation> endMap = new HashMap<>();
 
         Integer[] hourList = new Integer[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23};
 
@@ -129,48 +148,85 @@ public class RoutePlannerFragment extends Fragment {
         endHourSpinner.setAdapter(adapter1);
         endMinuteSpinner.setAdapter(adapter2);
 
-
-        submitButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String startHour = hourSpinner.getSelectedItem().toString();
-                String startMinute = minuteSpinner.getSelectedItem().toString();
-                String[] date = dateSpinner.getSelectedItem().toString().split("/");
-                Integer day = Integer.parseInt(date[0]);
-                Integer month = Integer.parseInt(date[1]);
-                Integer year = Integer.parseInt(date[2]);
-
-                GregorianCalendar startCal = new GregorianCalendar();
-                TimeZone tz = TimeZone.getDefault();
-                startCal.set(year, month, day, Integer.parseInt(startHour), Integer.parseInt(startMinute), 0);
-                startCal.set(Calendar.ZONE_OFFSET, tz.getOffset(startCal.getTimeInMillis()));
-
-                LocalTime startTime = LocalTime.of(Integer.parseInt(startHour), Integer.parseInt(startMinute), 0);
-
-                // Implement check for icons here.
-
-                /*
-                RoutePlannerViewModel model = new RoutePlannerViewModel(getActivity().getApplication());
-                model.callAPI(getActivity().getApplication());
-
-                rainIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getRainTint()));
-                windIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getWindTint()));
-                coatIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getCoatTint()));
-                lightIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getLightTint()));
-
-                rainIndicatorImage.setScaleX(model.getRainScale());
-                rainIndicatorImage.setScaleY(model.getRainScale());
-                windIndicatorImage.setScaleX(model.getWindScale());
-                windIndicatorImage.setScaleY(model.getWindScale());
-                coatIndicatorImage.setScaleX(model.getCoatScale());
-                coatIndicatorImage.setScaleY(model.getCoatScale());
-                lightIndicatorImage.setScaleX(model.getLightScale());
-                lightIndicatorImage.setScaleY(model.getLightScale());
-                */
-
-            }
+        startSearchButton.setOnClickListener(view1 -> {
+            String search = startEditText.getText().toString();
+            LocationAPI.requestLocation(getActivity(), location ->
+                    WebResourceAPI.listSearchLocation(getContext(), location, search, 5, resultList -> {
+                String[] nameList = new String[resultList.size()];
+                startMap.clear();
+                for (int i = 0; i < resultList.size(); i++) {
+                    nameList[i] = resultList.get(i).title;
+                    startMap.put(resultList.get(i).title, resultList.get(i));
+                }
+                ArrayAdapter<String> startNameAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, nameList);
+                startNameAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                startSpinner.setAdapter(startNameAdapter);
+            }, e -> {
+                        startEditText.getText().clear();
+                    }), e -> {
+                startEditText.getText().clear();
+            });
         });
 
+        endSearchButton.setOnClickListener(view1 -> {
+            String search = endEditText.getText().toString();
+            LocationAPI.requestLocation(getActivity(), location ->
+                    WebResourceAPI.listSearchLocation(getContext(), location, search, 5, resultList -> {
+                        String[] nameList = new String[resultList.size()];
+                        endMap.clear();
+                        for (int i = 0; i < resultList.size(); i++) {
+                            nameList[i] = resultList.get(i).title;
+                            endMap.put(resultList.get(i).title, resultList.get(i));
+                        }
+                        ArrayAdapter<String> endNameAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, nameList);
+                        endNameAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                        endSpinner.setAdapter(endNameAdapter);
+                    }, e -> {
+                        endEditText.getText().clear();
+                    }), e -> {
+                endEditText.getText().clear();
+            });
+        });
+
+        submitButton.setOnClickListener(view1 -> {
+            String startHour = hourSpinner.getSelectedItem().toString();
+            String startMinute = minuteSpinner.getSelectedItem().toString();
+            String[] date = dateSpinner.getSelectedItem().toString().split("/");
+            Integer day = Integer.parseInt(date[0]);
+            Integer month = Integer.parseInt(date[1]);
+            Integer year = Integer.parseInt(date[2]);
+
+            GregorianCalendar startCal = new GregorianCalendar();
+            TimeZone tz = TimeZone.getDefault();
+            startCal.set(year, month, day, Integer.parseInt(startHour), Integer.parseInt(startMinute), 0);
+            startCal.set(Calendar.ZONE_OFFSET, tz.getOffset(startCal.getTimeInMillis()));
+
+            LocalTime startTime = LocalTime.of(Integer.parseInt(startHour), Integer.parseInt(startMinute), 0);
+
+            // Implement check for icons here.
+
+            /*
+            RoutePlannerViewModel model = new RoutePlannerViewModel(getActivity().getApplication());
+            model.callAPI(getActivity().getApplication());
+
+            rainIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getRainTint()));
+            windIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getWindTint()));
+            coatIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getCoatTint()));
+            lightIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getLightTint()));
+
+            rainIndicatorImage.setScaleX(model.getRainScale());
+            rainIndicatorImage.setScaleY(model.getRainScale());
+            windIndicatorImage.setScaleX(model.getWindScale());
+            windIndicatorImage.setScaleY(model.getWindScale());
+            coatIndicatorImage.setScaleX(model.getCoatScale());
+            coatIndicatorImage.setScaleY(model.getCoatScale());
+            lightIndicatorImage.setScaleX(model.getLightScale());
+            lightIndicatorImage.setScaleY(model.getLightScale());
+            */
+
+        });
+
+        final CalendarEventHandler eventHandler = new CalendarEventHandler(getContext());
         calendarButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -222,9 +278,26 @@ public class RoutePlannerFragment extends Fragment {
 
                 notesEditText.getText().clear();
 
-                CalendarEventHandler eventHandler = new CalendarEventHandler(getContext());
-                eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes);
+                String startName = startSpinner.getSelectedItem().toString();
+                String endName = endSpinner.getSelectedItem().toString();
 
+                if(startMap.containsKey(startName) && endMap.containsKey(endName)) {
+                    eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
+                            startMap.get(startName), endMap.get(endName));
+                } else if (startMap.containsKey(startName)) {
+                    LocationAPI.requestLocation(getActivity(), location ->
+                            eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
+                            startMap.get(startName), new WebResourceAPI.MapLocation(location)), e -> eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
+                            startMap.get(startName), WebResourceAPI.MapLocation.getDefaultMapLocation()));
+                } else if (endMap.containsKey(endName)) {
+                    LocationAPI.requestLocation(getActivity(), location ->
+                            eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
+                            new WebResourceAPI.MapLocation(location), endMap.get(endName)), e -> eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
+                            WebResourceAPI.MapLocation.getDefaultMapLocation(), endMap.get(endName)));
+                } else {
+                    eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
+                            WebResourceAPI.MapLocation.getDefaultMapLocation(), WebResourceAPI.MapLocation.getDefaultMapLocation());
+                }
             }
         });
 

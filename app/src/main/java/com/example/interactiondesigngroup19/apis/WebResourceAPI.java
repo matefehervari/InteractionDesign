@@ -34,11 +34,11 @@ import java.util.Objects;
 public class WebResourceAPI {
 
     private static final String WEATHER_API_KEY = "c8cb49646fe2260171f748a52a909320";
-    public static final String CURRENT_WEATHER = "https://api.openweathermap.org/data/2.5/weather?lat=%f.4&lon=%f.4&appid=%s";
-    public static final String FORECAST_WEATHER = "https://api.openweathermap.org/data/2.5/forecast?lat=%f.4&lon=%f.4&appid=%s";
+    public static final String CURRENT_WEATHER = "https://api.openweathermap.org/data/2.5/weather?lat=%.4f&lon=%.4f&appid=%s";
+    public static final String FORECAST_WEATHER = "https://api.openweathermap.org/data/2.5/forecast?lat=%.4f&lon=%.4f&appid=%s";
     private static final String MAP_API_KEY = "Qk0S_zpXXOKVYqZ0lNRtmYdvTkVUMM8JlvALlb1YfZ0";
-    public static final String MAP_SEARCH = "https://discover.search.hereapi.com/v1/discover?at=%f.4,%f.4&q=%s&limit=%d&apiKey=%s";
-    private static final String ROUTE_SEARCH = "https://router.hereapi.com/v8/routes?origin=%f.5,%f.5&destination=%f.5,%f.5&departureTime=%s&return=summary,typicalDuration&transportMode=bicycle&apikey=%s";
+    public static final String MAP_SEARCH = "https://discover.search.hereapi.com/v1/discover?at=%.4f,%.4f&q=%s&limit=%d&apiKey=%s";
+    private static final String ROUTE_SEARCH = "https://router.hereapi.com/v8/routes?origin=%.5f,%.5f&destination=%.5f,%.5f&departureTime=%s&return=summary,typicalDuration&transportMode=bicycle&apikey=%s";
     private static RequestQueue requestQueue;
     private static Map<String, JSONObject> weatherRequestCache = new HashMap<>();
     private static Map<String, JSONObject> mapRequestCache = new HashMap<>();
@@ -121,6 +121,20 @@ public class WebResourceAPI {
     public static class MapLocation {
         public final String title, addressLabel, country;
         public final double lat, lon;
+        private static final MapLocation defaultLocation = new MapLocation("Cambridge", "Cambridge", "United Kingdom", 52.21109, 0.09135);
+        public static MapLocation getDefaultMapLocation() {
+            return defaultLocation;
+        }
+        public MapLocation(String title, String addressLabel, String country, double lat, double lon) {
+            this.title = title; this.addressLabel = addressLabel; this.country = country; this.lat = lat; this.lon = lon;
+        }
+        public MapLocation(Location location) {
+            this.title = location.getLatitude() + ", " + location.getLongitude();
+            this.addressLabel = location.getLatitude() + ", " + location.getLongitude();
+            this.country = "";
+            this.lat = location.getLatitude();
+            this.lon = location.getLongitude();
+        }
         public MapLocation(JSONObject obj) throws JSONException {
             title = obj.getString("title");
             JSONObject addr = obj.getJSONObject("address");
@@ -128,7 +142,7 @@ public class WebResourceAPI {
             country = addr.getString("countryName");
             JSONObject pos = obj.getJSONObject("position");
             lat = pos.getDouble("lat");
-            lon = pos.getDouble("lon");
+            lon = pos.getDouble("lng");
         }
     }
 
@@ -170,7 +184,7 @@ public class WebResourceAPI {
             try {
                 WeatherResult w = new WeatherResult(response.getJSONArray("list").getJSONObject(i));
                 long cacheTime = w.time / (1000 * 60 * 60 * 3);
-                cacheRequest = String.format(Locale.UK, "F:T:%d Lat:%f.3 Lon:%f.3", cacheTime, lat, lon);
+                cacheRequest = String.format(Locale.UK, "F:T:%d Lat:%.3f Lon:%.3f", cacheTime, lat, lon);
                 weatherResultCache.put(cacheRequest, w);
             } finally {
 
@@ -196,7 +210,7 @@ public class WebResourceAPI {
 
     public static boolean getWeatherForecast(Context context, double lat, double lon, long time, OnSuccessListener<WeatherResult> response, OnFailureListener errorResponse) {
         long cacheTime = time / (1000 * 60 * 60 * 3);
-        String cacheRequest = String.format(Locale.UK, "F:T:%d Lat:%f.3 Lon:%f.3", cacheTime, lat, lon);
+        String cacheRequest = String.format(Locale.UK, "F:T:%d Lat:%.3f Lon:%.3f", cacheTime, lat, lon);
         if (weatherResultCache.containsKey(cacheRequest)) {
             response.onSuccess(weatherResultCache.get(cacheRequest));
         } else {
@@ -238,7 +252,7 @@ public class WebResourceAPI {
         long currTime = System.currentTimeMillis() / (1000 * 60 * 60 * 3);
         String cacheRequest;
         for (int i = 0; i < 40; i++) {
-            cacheRequest = String.format(Locale.UK, "F:T:%d Lat:%f.3 Lon:%f.3", currTime + i, lat, lon);
+            cacheRequest = String.format(Locale.UK, "F:T:%d Lat:%.3f Lon:%.3f", currTime + i, lat, lon);
             if (weatherResultCache.containsKey(cacheRequest)) {
                 list.add(weatherResultCache.get(cacheRequest));
             } else {
@@ -261,7 +275,7 @@ public class WebResourceAPI {
         long currTime = System.currentTimeMillis() / (1000 * 60 * 60 * 3);
         String cacheRequest;
         for (int i = 0; i < 40; i++) {
-            cacheRequest = String.format(Locale.UK, "F:T:%d Lat:%f.3 Lon:%f.3", currTime + i, lat, lon);
+            cacheRequest = String.format(Locale.UK, "F:T:%d Lat:%.3f Lon:%.3f", currTime + i, lat, lon);
             if (weatherResultCache.containsKey(cacheRequest)) {
                 list.add(weatherResultCache.get(cacheRequest));
             } else {
@@ -290,7 +304,7 @@ public class WebResourceAPI {
 
     public static boolean listSearchLocation(Context context, Location location, String request, int limit, OnSuccessListener<List<MapLocation>> response, OnFailureListener errorResponse) {
         if (location != null) {
-            return listSearchLocation(context, location, request, limit, response, errorResponse);
+            return listSearchLocation(context, location.getLatitude(), location.getLongitude(), request, limit, response, errorResponse);
         }
         return false;
     }
@@ -300,7 +314,7 @@ public class WebResourceAPI {
             try {
                 JSONArray items = res.getJSONArray("items");
                 List<MapLocation> list = new ArrayList<MapLocation>();
-                for (int i = 0; i < limit; i++) {
+                for (int i = 0; !items.isNull(i); i++) {
                     list.add(new MapLocation(items.getJSONObject(i)));
                 }
                 response.onSuccess(list);
@@ -332,27 +346,29 @@ public class WebResourceAPI {
         if (resource != null) {
             if (Objects.equals(resource, CURRENT_WEATHER)) {
                 long time = System.currentTimeMillis() / (1000 * 60 * 10);
-                String cacheRequest = String.format(Locale.UK, "C:T:%d Lat:%f.3 Lon:%f.3", time, lat, lon);
+                String cacheRequest = String.format(Locale.UK, "C:T:%d Lat:%.3f Lon:%.3f", time, lat, lon);
                 if (weatherRequestCache.containsKey(cacheRequest)) {
                     response.onResponse(weatherRequestCache.get(cacheRequest));
                 } else {
                     makeRequest(context, String.format(Locale.UK, resource, lat, lon, WEATHER_API_KEY), (JSONObject res) ->
                         cacheResponse(res, response, cacheRequest, weatherRequestCache), errorResponse);
                 }
+                return true;
             } else if (Objects.equals(resource, FORECAST_WEATHER)) {
                 long time = System.currentTimeMillis() / (1000 * 60 * 60);
-                String cacheRequest = String.format(Locale.UK, "F:T:%d Lat:%f.3 Lon:%f.3", time, lat, lon);
+                String cacheRequest = String.format(Locale.UK, "F:T:%d Lat:%.3f Lon:%.3f", time, lat, lon);
                 if (weatherRequestCache.containsKey(cacheRequest)) {
                     response.onResponse(weatherRequestCache.get(cacheRequest));
                 } else {
                     makeRequest(context, String.format(Locale.UK, resource, lat, lon, WEATHER_API_KEY),(JSONObject res) ->
                         cacheResponse(res, response, cacheRequest, weatherRequestCache), errorResponse);
                 }
+                return true;
             }
             else {
                 makeRequest(context, String.format(Locale.UK, resource, lat, lon, WEATHER_API_KEY), response, errorResponse);
+                return true;
             }
-            return true;
         }
         return false;
     }
@@ -361,19 +377,23 @@ public class WebResourceAPI {
                                        Response.Listener<JSONObject> response, Response.ErrorListener errorResponse) {
         if (response != null) {
             if (Objects.equals(resource, MAP_SEARCH)) {
-                String cacheRequest = String.format(Locale.UK, "MS:Lat:%f.4 Lon:%f.4 Req:%s Lim:%d",
+                String cacheRequest = String.format(Locale.UK, "MS:Lat:%.4f Lon:%.4f Req:%s Lim:%d",
                         lat, lon, request, limit);
                 if (mapRequestCache.containsKey(cacheRequest)) {
                     response.onResponse(mapRequestCache.get(cacheRequest));
+                    return true;
                 } else {
-                    makeRequest(context, String.format(Locale.UK, resource, lat, lon, request, limit, WEATHER_API_KEY), (JSONObject res) ->
+                    makeRequest(context, String.format(Locale.UK, resource, lat, lon, request.replace(" ", "+")
+                            .replace(",", "%2C"), limit, MAP_API_KEY), (JSONObject res) ->
                                     cacheResponse(res, response, cacheRequest, weatherRequestCache), errorResponse);
+                    return true;
                 }
             } else {
-                makeRequest(context, String.format(Locale.UK, resource, lat, lon, request, limit, MAP_API_KEY),
+                makeRequest(context, String.format(Locale.UK, resource, lat, lon, request.replace(" ", "+")
+                                .replace(",", "%2C"), limit, MAP_API_KEY),
                         response, errorResponse);
+                return true;
             }
-            return true;
         }
         return false;
     }
@@ -383,17 +403,18 @@ public class WebResourceAPI {
         if (response != null) {
             if (Objects.equals(resource, ROUTE_SEARCH)) {
                 long hourTime = departureTime / (1000 * 60 * 60);
-                String cacheRequest = String.format(Locale.UK, "RS:OLat:%f.4 OLon:%f.4 DLat:%f.4 DLon:%f.4 T:%d",
+                String cacheRequest = String.format(Locale.UK, "RS:OLat:%.4f OLon:%.4f DLat:%.4f DLon:%.4f T:%d",
                         origLat, origLon, destLat, destLon, hourTime);
                 if (mapRequestCache.containsKey(cacheRequest)) {
                     response.onResponse(mapRequestCache.get(cacheRequest));
+                    return true;
                 } else {
                     makeRequest(context, String.format(Locale.UK, resource, origLat, origLon, destLat, destLon,
-                            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").format(new Date(departureTime))), (JSONObject res) ->
+                            new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").format(new Date(departureTime)), MAP_API_KEY), (JSONObject res) ->
                             cacheResponse(res, response, cacheRequest, mapRequestCache), errorResponse);
+                    return true;
                 }
             }
-            return true;
         }
         return false;
     }
