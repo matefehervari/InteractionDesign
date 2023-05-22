@@ -76,32 +76,33 @@
             android:layout_weight="2"
             android:orientation="horizontal">
 
-            <Spinner
-                android:id="@+id/HourSpinner"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
+            <Button
+                android:id="@+id/start_time_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:spinnerMode="dropdown" />
+                android:background="#00FFFFFF"
+                android:insetLeft="5dp"
+                android:insetRight="5dp"
+                android:text="Select..."
+                android:textAlignment="textStart"
+                android:textAppearance="@style/TextAppearance.AppCompat"
+                android:textColor="#898989"
+                android:textSize="20sp" />
 
-            <Spinner
-                android:id="@+id/MinuteSpinner"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1" />
-
-            <Spinner
-                android:id="@+id/endHourSpinner"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
+            <Button
+                android:id="@+id/end_time_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:spinnerMode="dropdown" />
-
-            <Spinner
-                android:id="@+id/endMinuteSpinner"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1" />
-
+                android:background="#00FFFFFF"
+                android:insetLeft="5dp"
+                android:insetRight="5dp"
+                android:text="Select..."
+                android:textAlignment="textStart"
+                android:textAppearance="@style/TextAppearance.AppCompat"
+                android:textColor="#898989"
+                tools:textSize="20sp" />
         </LinearLayout>
 
         <LinearLayout

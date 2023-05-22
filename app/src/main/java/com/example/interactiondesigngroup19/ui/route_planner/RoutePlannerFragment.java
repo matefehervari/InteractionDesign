@@ -1,39 +1,29 @@
 package com.example.interactiondesigngroup19.ui.route_planner;
 
+import android.app.TimePickerDialog;
 import android.icu.util.GregorianCalendar;
 import android.icu.util.TimeZone;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
-import android.widget.TextView;
+import android.widget.TimePicker;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.navigation.Navigation;
 
-import com.example.interactiondesigngroup19.R;
 import com.example.interactiondesigngroup19.apis.LocationAPI;
 import com.example.interactiondesigngroup19.apis.WebResourceAPI;
 import com.example.interactiondesigngroup19.databinding.FragmentRoutePlannerBinding;
-import com.example.interactiondesigngroup19.ui.calendar.CalendarEvent;
 import com.example.interactiondesigngroup19.ui.calendar.CalendarEventHandler;
-import com.example.interactiondesigngroup19.ui.home.HomeViewModel;
-import com.example.interactiondesigngroup19.ui.route_planner.RoutePlannerViewModel;
-import com.example.interactiondesigngroup19.ui.route_planner.RoutePlannerViewModel;
-import com.example.interactiondesigngroup19.ui.route_planner.RoutePlannerViewModel;
 import com.example.interactiondesigngroup19.ui.util.Indicator;
-import com.example.interactiondesigngroup19.ui.util.IndicatorHelper;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -41,18 +31,18 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.logging.Logger;
 
 public class RoutePlannerFragment extends Fragment {
-
+    private Button startTimeButton;
+    private Button endTimeButton;
     private FragmentRoutePlannerBinding binding;
+    private RoutePlannerViewModel routeModel;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -71,11 +61,13 @@ public class RoutePlannerFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        final Spinner hourSpinner = binding.HourSpinner;
-        final Spinner minuteSpinner = binding.MinuteSpinner;
+//        final Spinner hourSpinner = binding.HourSpinner;
+//        final Spinner minuteSpinner = binding.MinuteSpinner;
         final Spinner dateSpinner = binding.DateSpinner;
-        final Spinner endHourSpinner = binding.endHourSpinner;
-        final Spinner endMinuteSpinner = binding.endMinuteSpinner;
+//        final Spinner endHourSpinner = binding.endHourSpinner;
+//        final Spinner endMinuteSpinner = binding.endMinuteSpinner;
+        startTimeButton = binding.startTimeButton;
+        endTimeButton = binding.endTimeButton;
 
         final EditText notesEditText = binding.notesEditText;
 
@@ -99,6 +91,8 @@ public class RoutePlannerFragment extends Fragment {
         final Map<String, WebResourceAPI.MapLocation> startMap = new HashMap<>();
         final Map<String, WebResourceAPI.MapLocation> endMap = new HashMap<>();
 
+        routeModel = new RoutePlannerViewModel(getActivity().getApplication());
+
         Integer[] hourList = new Integer[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23};
 
         Integer[] minuteList = new Integer[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
@@ -111,8 +105,8 @@ public class RoutePlannerFragment extends Fragment {
         adapter1.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         adapter2.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-        hourSpinner.setAdapter(adapter1);
-        minuteSpinner.setAdapter(adapter2);
+//        hourSpinner.setAdapter(adapter1);
+//        minuteSpinner.setAdapter(adapter2);
 
         Calendar calendar = Calendar.getInstance();
         Date day1 = calendar.getTime();
@@ -145,8 +139,8 @@ public class RoutePlannerFragment extends Fragment {
 
         dateSpinner.setAdapter(adapter3);
 
-        endHourSpinner.setAdapter(adapter1);
-        endMinuteSpinner.setAdapter(adapter2);
+//        endHourSpinner.setAdapter(adapter1);
+//        endMinuteSpinner.setAdapter(adapter2);
 
         String[] emptyLocList = new String[]{""};
         ArrayAdapter<String> startSpinnerAdapter = new ArrayAdapter<>(this.getContext(), android.R.layout.simple_spinner_item, emptyLocList);
@@ -155,6 +149,21 @@ public class RoutePlannerFragment extends Fragment {
         ArrayAdapter<String> endSpinnerAdapter = new ArrayAdapter<>(this.getContext(), android.R.layout.simple_spinner_item, emptyLocList);
         endSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         endSpinner.setAdapter(endSpinnerAdapter);
+
+        // binds time picker popups
+        startTimeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startPopTimePicker(v);
+            }
+        });
+
+        endTimeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                endPopTimePicker(v);
+            }
+        });
 
         startSearchButton.setOnClickListener(view1 -> {
             String search = startEditText.getText().toString();
@@ -232,8 +241,10 @@ public class RoutePlannerFragment extends Fragment {
         });
 
         submitButton.setOnClickListener(view1 -> {
-            String startHour = hourSpinner.getSelectedItem().toString();
-            String startMinute = minuteSpinner.getSelectedItem().toString();
+            // gets the time params from the viewModel. Left it as string as it was before just in case?
+            String startHour = String.valueOf(routeModel.getStartHour());
+            String startMinute = String.valueOf(routeModel.getEndHour());
+
             String[] date = dateSpinner.getSelectedItem().toString().split("/");
             Integer day = Integer.parseInt(date[0]);
             Integer month = Integer.parseInt(date[1]);
@@ -274,15 +285,17 @@ public class RoutePlannerFragment extends Fragment {
             @Override
             public void onClick(View view) {
 
-                /*
+
                 RoutePlannerViewModel model = new RoutePlannerViewModel(getActivity().getApplication());
                 model.callAPI(getActivity().getApplication());
 
                 // Indicator Icons
-                rainIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getRainTint()));
-                windIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getWindTint()));
-                coatIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getCoatTint()));
-                lightIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getLightTint()));
+//                rainIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getRainTint()));
+//                windIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getWindTint()));
+//                coatIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getCoatTint()));
+//                lightIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getLightTint()));
+
+
 
                 rainIndicatorImage.setScaleX(model.getRainScale());
                 rainIndicatorImage.setScaleY(model.getRainScale());
@@ -292,12 +305,12 @@ public class RoutePlannerFragment extends Fragment {
                 coatIndicatorImage.setScaleY(model.getCoatScale());
                 lightIndicatorImage.setScaleX(model.getLightScale());
                 lightIndicatorImage.setScaleY(model.getLightScale());
-                */
+
 
                 // Get data and send off to calendar
 
-                String startHour = hourSpinner.getSelectedItem().toString();
-                String startMinute = minuteSpinner.getSelectedItem().toString();
+                String startHour = String.valueOf(routeModel.getStartHour());
+                String startMinute = String.valueOf(routeModel.getEndHour());
                 String[] date = dateSpinner.getSelectedItem().toString().split("/");
                 Integer day = Integer.parseInt(date[0]);
                 Integer month = Integer.parseInt(date[1]);
@@ -305,8 +318,8 @@ public class RoutePlannerFragment extends Fragment {
 
                 LocalTime startTime = LocalTime.of(Integer.parseInt(startHour), Integer.parseInt(startMinute), 0);
 
-                String endHour = endHourSpinner.getSelectedItem().toString();
-                String endMinute = endMinuteSpinner.getSelectedItem().toString();
+                String endHour = String.valueOf(routeModel.getEndHour());
+                String endMinute = String.valueOf(routeModel.getEndMin());
 
                 LocalTime endTime = LocalTime.of(Integer.parseInt(endHour), Integer.parseInt(endMinute), 0);
 
@@ -329,9 +342,11 @@ public class RoutePlannerFragment extends Fragment {
                             startMap.get(startName), endMap.get(endName));
                 } else if (startMap.containsKey(startName)) {
                     LocationAPI.requestLocation(getActivity(), location ->
+
                             eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
                             startMap.get(startName), new WebResourceAPI.MapLocation(location)), e -> eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
                             startMap.get(startName), WebResourceAPI.MapLocation.getDefaultMapLocation()));
+
                 } else if (endMap.containsKey(endName)) {
                     LocationAPI.requestLocation(getActivity(), location ->
                             eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
@@ -344,6 +359,37 @@ public class RoutePlannerFragment extends Fragment {
             }
         });
 
+    }
+
+    // shows time pickers
+    private void startPopTimePicker(View view) {
+        TimePickerDialog.OnTimeSetListener onTimeSetListener = new TimePickerDialog.OnTimeSetListener() {
+            @Override
+            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                routeModel.setStartHour(hourOfDay);
+                routeModel.setStartMin(minute);
+                startTimeButton.setText(String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute));
+            }
+        };
+
+        TimePickerDialog timePickerDialog = new TimePickerDialog(getContext(), onTimeSetListener, routeModel.getStartHour(), routeModel.getStartMin(), true);
+        timePickerDialog.setTitle("Select Time");
+        timePickerDialog.show();
+    }
+
+    private void endPopTimePicker(View view) {
+        TimePickerDialog.OnTimeSetListener onTimeSetListener = new TimePickerDialog.OnTimeSetListener() {
+            @Override
+            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                routeModel.setEndHour(hourOfDay);
+                routeModel.setEndMin(minute);
+                endTimeButton.setText(String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute));
+            }
+        };
+
+        TimePickerDialog timePickerDialog = new TimePickerDialog(getContext(), onTimeSetListener, routeModel.getStartHour(), routeModel.getStartMin(), true);
+        timePickerDialog.setTitle("Select Time");
+        timePickerDialog.show();
     }
 
     @Override
