@@ -29,6 +29,7 @@ import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.interactiondesigngroup19.MainActivity;
 import com.example.interactiondesigngroup19.R;
+import com.example.interactiondesigngroup19.apis.LocationAPI;
 import com.example.interactiondesigngroup19.databinding.FragmentHomeBinding;
 
 public class HomeFragment extends Fragment {
@@ -48,6 +49,7 @@ public class HomeFragment extends Fragment {
     }
 
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        final HomeViewModel viewModel = new HomeViewModel(getActivity().getApplication());
 
         final TextView textView = binding.temperatureTextview;
         final ImageButton refresh = binding.refreshButton;
@@ -58,35 +60,36 @@ public class HomeFragment extends Fragment {
         final ImageView coatIndicatorImage = binding.coatIndicator;
         final ImageView lightIndicatorImage = binding.lightIndicator;
 
-        refresh.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        viewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
+        viewModel.getWeatherUI().observe(getViewLifecycleOwner(), weatherUIData -> {
 
-                // Changes the attributes of the indicator images to indicate on/off
-                HomeViewModel model = new HomeViewModel(getActivity().getApplication());
-                model.callAPI(getActivity().getApplication());
+            // Changes the attributes of the indicator images to indicate on/off
+            mainImage.setImageResource(weatherUIData.mImageID);
 
-                model.getText().observe(getViewLifecycleOwner(), textView::setText);
-                mainImage.setImageResource(model.getImageID());
+            Context currContext = getActivity().getApplication().getApplicationContext();
 
-                /*
-                rainIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getRainTint()));
-                windIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getWindTint()));
-                coatIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getCoatTint()));
-                lightIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getLightTint()));
-                
-                rainIndicatorImage.setScaleX(model.getRainScale());
-                rainIndicatorImage.setScaleY(model.getRainScale());
-                windIndicatorImage.setScaleX(model.getWindScale());
-                windIndicatorImage.setScaleY(model.getWindScale());
-                coatIndicatorImage.setScaleX(model.getCoatScale());
-                coatIndicatorImage.setScaleY(model.getCoatScale());
-                lightIndicatorImage.setScaleX(model.getLightScale());
-                lightIndicatorImage.setScaleY(model.getLightScale());
-                 */
+            rainIndicatorImage.setColorFilter(ContextCompat.getColor(currContext, weatherUIData.rainTint));
+            windIndicatorImage.setColorFilter(ContextCompat.getColor(currContext, weatherUIData.windTint));
+            coatIndicatorImage.setColorFilter(ContextCompat.getColor(currContext, weatherUIData.coatTint));
+            lightIndicatorImage.setColorFilter(ContextCompat.getColor(currContext, weatherUIData.lightTint));
 
-            }
+            rainIndicatorImage.setScaleX(viewModel.getRainScale());
+            rainIndicatorImage.setScaleY(viewModel.getRainScale());
+            windIndicatorImage.setScaleX(viewModel.getWindScale());
+            windIndicatorImage.setScaleY(viewModel.getWindScale());
+            coatIndicatorImage.setScaleX(viewModel.getCoatScale());
+            coatIndicatorImage.setScaleY(viewModel.getCoatScale());
+            lightIndicatorImage.setScaleX(viewModel.getLightScale());
+            lightIndicatorImage.setScaleY(viewModel.getLightScale());
         });
+
+        refresh.setOnClickListener(view1 -> {
+            // Changes the attributes of the indicator images to indicate on/off
+            viewModel.callAPI(getActivity(), view1);
+        });
+
+        LocationAPI.ensureLocationClientAndRequester(getActivity());
+        viewModel.callAPI(getActivity());
 
         final ImageButton details = binding.InfoButton;
         details.setOnClickListener(new View.OnClickListener() {

@@ -4,23 +4,38 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 
+import com.example.interactiondesigngroup19.apis.WebResourceAPI;
 import com.example.interactiondesigngroup19.ui.util.Indicator;
+import com.example.interactiondesigngroup19.ui.util.IndicatorHelper;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.Map;
 
 public class CalendarEventHandler {
 
     private final LinkedList<CalendarEvent> events;
     private final EventWriteReader eventReadWriter;
+    private final Map<LocalDate, Integer> dateCounts;
 
     public CalendarEventHandler(Context context) {
         eventReadWriter = new EventWriteReader(context);
         events = eventReadWriter.ReadEvents();
+        dateCounts = new HashMap<>();
+        initializeEventCounts();
+    }
+
+    private void initializeEventCounts() {
+        for (CalendarEvent event :
+                events) {
+            dateCounts.merge(event.getStartDateTime().toLocalDate(), 1, Integer::sum);
+        }
     }
 
     public void addEvent(CalendarEvent event) {
@@ -28,8 +43,15 @@ public class CalendarEventHandler {
         eventReadWriter.WriteEvents(events);
     }
 
-    public void addEvent(LocalDateTime startDateTime, LocalTime endTime, List<Indicator> indicators) {
-        addSortedEvent(new CalendarEvent(startDateTime, endTime, indicators));
+    public void addEvent(LocalDateTime startDateTime, LocalTime endTime, List<Indicator> indicators,
+                         WebResourceAPI.MapLocation start, WebResourceAPI.MapLocation end) {
+        addSortedEvent(new CalendarEvent(startDateTime, endTime, indicators, start, end));
+        eventReadWriter.WriteEvents(events);
+    }
+
+    public void addEvent(LocalDateTime startDateTime, LocalTime endTime, List<Indicator> indicators, String note,
+                         WebResourceAPI.MapLocation start, WebResourceAPI.MapLocation end) {
+        addSortedEvent(new CalendarEvent(startDateTime, endTime, indicators, note, start, end));
         eventReadWriter.WriteEvents(events);
     }
 
@@ -38,6 +60,7 @@ public class CalendarEventHandler {
     }
 
     private void addSortedEvent(CalendarEvent event) {
+        dateCounts.merge(event.getStartDateTime().toLocalDate(), 1, Integer::sum);
         LocalDateTime eventStartTime = event.getStartDateTime();
 
         if (events.size() == 0) {
@@ -63,7 +86,8 @@ public class CalendarEventHandler {
         LocalDateTime randomStart = LocalDateTime.of(2023, 1 + rand.nextInt(2), 1 + rand.nextInt(2), rand.nextInt(24), rand.nextInt(60));
         LocalTime randomEnd = LocalTime.of(rand.nextInt(24), rand.nextInt(60));
 
-        CalendarEvent calendarEvent = new CalendarEvent(randomStart, randomEnd, new LinkedList<>());
+        CalendarEvent calendarEvent = new CalendarEvent(randomStart, randomEnd, IndicatorHelper.fromArray(new boolean[] {true, false, true, false}),
+                WebResourceAPI.MapLocation.getDefaultMapLocation(), WebResourceAPI.MapLocation.getDefaultMapLocation());
         addEvent(calendarEvent);
 
         return calendarEvent;
@@ -71,7 +95,14 @@ public class CalendarEventHandler {
 
     public void removeEvent(CalendarEvent event) {
         events.remove(event);
+        dateCounts.merge(event.getStartDateTime().toLocalDate(), -1, Integer::sum);
         eventReadWriter.WriteEvents(events);
+        System.out.println(dateCounts);
+    }
+
+    public boolean eventsWithSameDate(CalendarEvent event) {
+        // returns whether other calendar events share the same date as `event`
+        return dateCounts.get(event.getStartDateTime().toLocalDate()) > 0;
     }
 
     @NonNull
