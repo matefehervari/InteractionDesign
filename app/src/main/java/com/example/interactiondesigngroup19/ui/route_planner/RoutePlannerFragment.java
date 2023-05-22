@@ -1,5 +1,7 @@
 package com.example.interactiondesigngroup19.ui.route_planner;
 
+import android.icu.util.GregorianCalendar;
+import android.icu.util.TimeZone;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.view.LayoutInflater;
@@ -137,6 +139,11 @@ public class RoutePlannerFragment extends Fragment {
                 Integer day = Integer.parseInt(date[0]);
                 Integer month = Integer.parseInt(date[1]);
                 Integer year = Integer.parseInt(date[2]);
+
+                GregorianCalendar startCal = new GregorianCalendar();
+                TimeZone tz = TimeZone.getDefault();
+                startCal.set(year, month, day, Integer.parseInt(startHour), Integer.parseInt(startMinute), 0);
+                startCal.set(Calendar.ZONE_OFFSET, tz.getOffset(startCal.getTimeInMillis()));
 
                 LocalTime startTime = LocalTime.of(Integer.parseInt(startHour), Integer.parseInt(startMinute), 0);
 

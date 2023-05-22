@@ -1,55 +1,96 @@
 package com.example.interactiondesigngroup19.ui.home;
 
-import android.Manifest;
 import android.app.Application;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.location.Location;
 
-import androidx.annotation.NonNull;
+import android.view.View;
 
-import android.app.Application;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.location.LocationManager;
-
-import androidx.core.app.ActivityCompat;
-import androidx.lifecycle.AndroidViewModel;
+import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.*;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.interactiondesigngroup19.MainActivity;
 import com.example.interactiondesigngroup19.R;
+import com.example.interactiondesigngroup19.apis.LocationAPI;
 import com.example.interactiondesigngroup19.apis.WebResourceAPI;
-import com.example.interactiondesigngroup19.ui.calendar.CalendarEvent;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.time.Instant;
 
 public class HomeViewModel extends ViewModelProvider.NewInstanceFactory {
 
     private MutableLiveData<String> mText;
-    private int mImageID;
 
-    private Location location;
+    public class WeatherUIData {
+        public final int mImageID;
+        public final int rainTint, windTint, coatTint, lightTint;
+        public final float rainScale, windScale, coatScale, lightScale;
 
-    private Context currentContext;
-    private long time;
+        public WeatherUIData(int mImageID, int rainTint, int windTint, int coatTint, int lightTint, float rainScale, float windScale, float coatScale, float lightScale) {
+            this.mImageID = mImageID;
+            this.rainTint = rainTint;
+            this.windTint = windTint;
+            this.coatTint = coatTint;
+            this.lightTint = lightTint;
+            this.rainScale = rainScale;
+            this.windScale = windScale;
+            this.coatScale = coatScale;
+            this.lightScale = lightScale;
+        }
 
-    private OnSuccessListener<WebResourceAPI.WeatherResult> weatherResultListener;
-    private OnFailureListener failureListener;
+        public WeatherUIData(MutableWeatherUIData w) {
+            this.mImageID = w.mImageID;
+            this.rainTint = w.rainTint;
+            this.windTint = w.windTint;
+            this.coatTint = w.coatTint;
+            this.lightTint = w.lightTint;
+            this.rainScale = w.rainScale;
+            this.windScale = w.windScale;
+            this.coatScale = w.coatScale;
+            this.lightScale = w.lightScale;
+        }
+    }
+
+    public class MutableWeatherUIData {
+        public int mImageID;
+        public int rainTint, windTint, coatTint, lightTint;
+        public float rainScale, windScale, coatScale, lightScale;
+
+        public MutableWeatherUIData(int mImageID, int rainTint, int windTint, int coatTint, int lightTint, float rainScale, float windScale, float coatScale, float lightScale) {
+            this.mImageID = mImageID;
+            this.rainTint = rainTint;
+            this.windTint = windTint;
+            this.coatTint = coatTint;
+            this.lightTint = lightTint;
+            this.rainScale = rainScale;
+            this.windScale = windScale;
+            this.coatScale = coatScale;
+            this.lightScale = lightScale;
+        }
+
+        public MutableWeatherUIData(WeatherUIData w) {
+            this.mImageID = w.mImageID;
+            this.rainTint = w.rainTint;
+            this.windTint = w.windTint;
+            this.coatTint = w.coatTint;
+            this.lightTint = w.lightTint;
+            this.rainScale = w.rainScale;
+            this.windScale = w.windScale;
+            this.coatScale = w.coatScale;
+            this.lightScale = w.lightScale;
+        }
+    }
+
+    private MutableLiveData<WeatherUIData> weatherUIData;
     private Application mApplication;
-    private int rainTint, windTint, coatTint, lightTint;
-    private float rainScale, windScale, coatScale, lightScale;
 
     public HomeViewModel(Application application) {
         mText = new MutableLiveData<>();
+        weatherUIData = new MutableLiveData<>(new WeatherUIData(0,
+                R.color.indicator_off, R.color.indicator_off, R.color.indicator_off, R.color.indicator_off,
+                1.0f, 1.0f, 1.0f, 1.0f));
+        mApplication = application;
 
         // processWeatherRequest();
     }
@@ -57,6 +98,7 @@ public class HomeViewModel extends ViewModelProvider.NewInstanceFactory {
     public void processWeatherRequest(WebResourceAPI.WeatherResult weatherResult) {
 
         String generalWeatherDescription = weatherResult.main.toLowerCase();
+        MutableWeatherUIData tempW = new MutableWeatherUIData(weatherUIData.getValue());
 
         float probOfPrecipiation = weatherResult.pop;
         float volumeOfPrecipitation = weatherResult.rain;
@@ -70,23 +112,23 @@ public class HomeViewModel extends ViewModelProvider.NewInstanceFactory {
 
         // Formats the weather information for calculating front page information
         // Deals with the temperature and the main image
-        String formattedTemp = ((int) currentTemperature) + "°";
+        String formattedTemp = (int) (currentTemperature - 273.15) + "°";
         mText.setValue(formattedTemp);
 
         switch (generalWeatherDescription) {
             case "sunny":
-                mImageID = R.drawable.sunny_main_image;
+                tempW.mImageID = R.drawable.sunny_main_image;
                 break;
             case "snow":
-                mImageID = R.drawable.snowy_main_image;
+                tempW.mImageID = R.drawable.snowy_main_image;
                 break;
             case "rain":
             case "drizzle":
-                mImageID = R.drawable.rainy_main_image;
+                tempW.mImageID = R.drawable.rainy_main_image;
                 break;
             case "clouds":
             default:
-                mImageID = R.drawable.cloudy_main_image;
+                tempW.mImageID = R.drawable.cloudy_main_image;
                 break;
         }
 
@@ -97,83 +139,96 @@ public class HomeViewModel extends ViewModelProvider.NewInstanceFactory {
         boolean lightIndicator = currentTime.compareTo(sunriseTime) < 0 || currentTime.compareTo(sunsetTime) > 0;
 
         // Sets the tint and scaling for the indicator icon values
-        rainTint = rainIndicator ? R.color.rain_indicator_on : R.color.indicator_off;
-        windTint = windIndicator ? R.color.wind_indicator_on : R.color.indicator_off;
-        coatTint = coatIndicator ? R.color.coat_indicator_on : R.color.indicator_off;
-        lightTint = lightIndicator ? R.color.light_indicator_on : R.color.indicator_off;
+        tempW.rainTint = rainIndicator ? R.color.rain_indicator_on : R.color.indicator_off;
+        tempW.windTint = windIndicator ? R.color.wind_indicator_on : R.color.indicator_off;
+        tempW.coatTint = coatIndicator ? R.color.coat_indicator_on : R.color.indicator_off;
+        tempW.lightTint = lightIndicator ? R.color.light_indicator_on : R.color.indicator_off;
 
-        rainScale = rainIndicator ? 1.0f : 0.5f;
-        windScale = windIndicator ? 1.0f : 0.5f;
-        coatScale = coatIndicator ? 1.0f : 0.5f;
-        lightScale = lightIndicator ? 1.0f : 0.5f;
+        tempW.rainScale = rainIndicator ? 1.0f : 0.5f;
+        tempW.windScale = windIndicator ? 1.0f : 0.5f;
+        tempW.coatScale = coatIndicator ? 1.0f : 0.5f;
+        tempW.lightScale = lightIndicator ? 1.0f : 0.5f;
+
+        weatherUIData.setValue(new WeatherUIData(tempW));
     }
 
     public LiveData<String> getText() {
         return mText;
     }
+    public LiveData<WeatherUIData> getWeatherUI() { return weatherUIData; }
 
     public int getImageID() {
-        return mImageID;
+        return weatherUIData.getValue().mImageID;
     }
 
     public int getRainTint() {
-        return rainTint;
+        return weatherUIData.getValue().rainTint;
     }
     public int getWindTint() {
-        return windTint;
+        return weatherUIData.getValue().windTint;
     }
-    public int getCoatTint() {
-        return coatTint;
-    }
+    public int getCoatTint() { return weatherUIData.getValue().coatTint; }
     public int getLightTint() {
-        return lightTint;
+        return weatherUIData.getValue().lightTint;
     }
 
     public float getRainScale() {
-        return rainScale;
+        return weatherUIData.getValue().rainScale;
     }
     public float getWindScale() {
-        return windScale;
+        return weatherUIData.getValue().windScale;
     }
     public float getCoatScale() {
-        return coatScale;
+        return weatherUIData.getValue().coatScale;
     }
     public float getLightScale() {
-        return lightScale;
+        return weatherUIData.getValue().lightScale;
     }
 
-    public void callAPI(Application application) {
-        mApplication = application;
+    public void callAPI(FragmentActivity activity, View view) {
         // Get context for the current request (N.B. but not used by getWeatherForecast() ?)
         Context currentContext = mApplication.getApplicationContext();
 
         // Get location from somewhere
-        Location location = new Location("");
-        location.setLatitude(52.2053844);
-        location.setLongitude(0.1189721);
-        ;
+        LocationAPI.requestLocation(activity, (Location loc) -> {
+            WebResourceAPI.getWeatherCurrent(currentContext, loc, this::processWeatherRequest, (Exception e) -> {
+                Snackbar.make(view, e.getLocalizedMessage(), Snackbar.LENGTH_LONG)
+                        .setAnchorView(view)
+                        .setAction("Action", null).show();
+                //Debug please remove
+                processWeatherRequest(new WebResourceAPI.WeatherResult(1.3f, 265, 4.3f, 0.4f,
+                        180.3f, 182.2f, 183.3f, 175.7f, System.currentTimeMillis(), "", 10000,
+                        "sunny", "rain", 72, 0.3f, 0f, true));
+            });
+        }, (Exception e) -> {
+            Snackbar.make(view, e.getLocalizedMessage(), Snackbar.LENGTH_LONG)
+                    .setAnchorView(view)
+                    .setAction("Action", null).show();
+            //Debug please remove
+            processWeatherRequest(new WebResourceAPI.WeatherResult(1.3f, 265, 4.3f, 0.4f,
+                    182.3f, 190.2f, 190.3f, 180.7f, System.currentTimeMillis(), "", 10000,
+                    "rain", "rain", 72, 0.3f, 0f, true));
+        });
+    }
 
-        // Get 'time' as a long?
-        long time = System.currentTimeMillis();
+    public void callAPI(FragmentActivity activity) {
+        // Get context for the current request (N.B. but not used by getWeatherForecast() ?)
+        Context currentContext = mApplication.getApplicationContext();
+        mText.setValue("Loading");
 
-        OnSuccessListener<WebResourceAPI.WeatherResult> weatherResultListener = new OnSuccessListener<WebResourceAPI.WeatherResult>() {
-            @Override
-            public void onSuccess(WebResourceAPI.WeatherResult weatherResult) {
-                processWeatherRequest(weatherResult);
-            }
-        };
-
-        // Deal with failure of API request?
-        OnFailureListener failureListener = new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                rainTint = R.color.indicator_off;
-                windTint = R.color.indicator_off;
-                coatTint = R.color.indicator_off;
-                lightTint = R.color.indicator_off;
-            }
-        };
-
-        WebResourceAPI.getWeatherForecast(currentContext, location, time, weatherResultListener, failureListener);
+        // Get location from somewhere
+        LocationAPI.requestLocation(activity, (Location loc) -> {
+            WebResourceAPI.getWeatherCurrent(currentContext, loc, this::processWeatherRequest, (Exception e) -> {
+                //Debug please remove
+                processWeatherRequest(new WebResourceAPI.WeatherResult(1.3f, 265, 4.3f, 0.4f,
+                        180.3f, 182.2f, 183.3f, 175.7f, System.currentTimeMillis(), "", 10000,
+                        "sunny", "rain", 72, 0.3f, 0f, true));
+            });
+        }, (Exception e) -> {
+            //Debug please remove
+            processWeatherRequest(new WebResourceAPI.WeatherResult(1.3f, 265, 4.3f, 0.4f,
+                    182.3f, 190.2f, 190.3f, 180.7f, System.currentTimeMillis(), "", 10000,
+                    "rain", "rain", 72, 0.3f, 0f, true));
+        });
     }
 }
