@@ -2,6 +2,7 @@ package com.example.interactiondesigngroup19.ui.calendar;
 
 import androidx.annotation.NonNull;
 
+import com.example.interactiondesigngroup19.apis.WebResourceAPI;
 import com.example.interactiondesigngroup19.ui.util.Indicator;
 
 import java.io.Serializable;
@@ -16,20 +17,28 @@ public class CalendarEvent implements Serializable {
     private final LocalTime endTime;
     private final List<Indicator> indicators;
     private final String note;
+    private final WebResourceAPI.MapLocation start;
+    private final WebResourceAPI.MapLocation end;
     private int dateId;
 
-    public CalendarEvent(LocalDateTime startTime, LocalTime endTime, List<Indicator> indicators) {
+    public CalendarEvent(LocalDateTime startTime, LocalTime endTime, List<Indicator> indicators,
+                         WebResourceAPI.MapLocation start, WebResourceAPI.MapLocation end) {
         this.startDateTime = startTime;
         this.endTime = endTime;
         this.indicators = indicators;
         this.note = "Calendar Event";
+        this.start = start;
+        this.end = end;
     }
 
-    public CalendarEvent(LocalDateTime startTime, LocalTime endTime, List<Indicator> indicators, String note) {
+    public CalendarEvent(LocalDateTime startTime, LocalTime endTime, List<Indicator> indicators, String note,
+                         WebResourceAPI.MapLocation start, WebResourceAPI.MapLocation end) {
         this.startDateTime = startTime;
         this.endTime = endTime;
         this.indicators = indicators;
         this.note = note;
+        this.start = start;
+        this.end = end;
     }
 
     public String getStartTimeString() {

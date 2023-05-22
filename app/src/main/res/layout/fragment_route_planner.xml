@@ -38,7 +38,7 @@
 
             <Spinner
                 android:id="@+id/DateSpinner"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="2"
                 tools:ignore="TouchTargetSizeCheck" />
@@ -53,7 +53,7 @@
 
             <TextView
                 android:id="@+id/textView5"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_marginHorizontal="5dp"
                 android:layout_weight="1"
@@ -62,8 +62,9 @@
 
             <TextView
                 android:id="@+id/textView14"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
+                android:layout_marginHorizontal="5dp"
                 android:layout_weight="1"
                 android:text="End Time"
                 android:textSize="25sp" />
@@ -99,8 +100,106 @@
                 android:id="@+id/endMinuteSpinner"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_marginHorizontal="5dp"
                 android:layout_weight="1" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/textView8"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="5dp"
+                    android:layout_weight="0"
+                    android:text="Start"
+                    android:textSize="25sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal">
+
+                    <ImageButton
+                        android:id="@+id/startSearchButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:src="@drawable/tick_image" />
+
+                    <EditText
+                        android:id="@+id/startEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:ems="10"
+                        android:hint="Search start..."
+                        android:inputType="text" />
+                </LinearLayout>
+
+                <Spinner
+                    android:id="@+id/startSpinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/textView11"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="5dp"
+                    android:layout_weight="0"
+                    android:text="Destination"
+                    android:textSize="25sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal">
+
+                    <ImageButton
+                        android:id="@+id/endSearchButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:src="@drawable/tick_image" />
+
+                    <EditText
+                        android:id="@+id/endEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:ems="10"
+                        android:hint="Search destination..."
+                        android:inputType="text" />
+
+                </LinearLayout>
+
+                <Spinner
+                    android:id="@+id/endSpinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+            </LinearLayout>
 
         </LinearLayout>
 
@@ -136,7 +235,7 @@
                 android:hint="Enter any notes about your journey..."
                 android:inputType="text"
                 android:singleLine="false"
-                android:textAlignment="viewStart"
+                android:textAlignment="gravity"
                 android:textColorHint="@android:color/secondary_text_dark" />
         </LinearLayout>
 
