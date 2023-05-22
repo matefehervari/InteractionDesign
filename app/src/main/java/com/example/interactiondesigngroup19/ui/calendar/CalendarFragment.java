@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -18,6 +19,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.interactiondesigngroup19.R;
 import com.example.interactiondesigngroup19.databinding.FragmentCalendarBinding;
 import com.example.interactiondesigngroup19.ui.util.Indicator;
 import com.google.android.material.card.MaterialCardView;
@@ -108,20 +110,6 @@ public class CalendarFragment extends Fragment {
         cv.setStrokeWidth(2);
         cv.setRadius(15);
 
-        cv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ((ViewManager) v.getParent()).removeView(v);
-                eventHandler.removeEvent(event);
-                if (!eventHandler.eventsWithSameDate(event)) {
-                    View dateTextView = binding.calendarLinearLayout.findViewById(event.getDateId());
-                    if (dateTextView != null) {
-                        ((ViewManager) dateTextView.getParent()).removeView(dateTextView);
-                    }
-                }
-            }
-        });
-
         // Horizontal layout inside card layout
         LinearLayout cardLayout = new LinearLayout(this.getContext());
         cardLayout.setOrientation(LinearLayout.HORIZONTAL);
@@ -167,6 +155,31 @@ public class CalendarFragment extends Fragment {
         indicatorLayout.setLayoutParams(indicatorLayoutParams);
         indicatorLayout.setPadding(10, 10, 10, 10);
 
+        // delete button
+        ImageButton deleteEventButton = new ImageButton(getContext());
+        LinearLayout.LayoutParams closeButtonLayout = new LinearLayout.LayoutParams(-2, -2);  // wrap_content
+        deleteEventButton.setLayoutParams(closeButtonLayout);
+        deleteEventButton.setImageResource(R.drawable.close);
+        deleteEventButton.setColorFilter(getContext().getColor(R.color.red));
+        deleteEventButton.setBackgroundColor(Color.TRANSPARENT);
+        deleteEventButton.setClickable(true);
+        deleteEventButton.setScaleX(0.75f);
+        deleteEventButton.setScaleY(0.75f);
+
+        deleteEventButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ((ViewManager) cv.getParent()).removeView(cv);
+                eventHandler.removeEvent(event);
+                if (!eventHandler.eventsWithSameDate(event)) {
+                    View dateTextView = binding.calendarLinearLayout.findViewById(event.getDateId());
+                    if (dateTextView != null) {
+                        ((ViewManager) dateTextView.getParent()).removeView(dateTextView);
+                    }
+                }
+            }
+        });
+
         // indicators
         List<Indicator> indicators = event.getIndicators();
         ListIterator<Indicator> indicatorIterator = indicators.listIterator(indicators.size());
@@ -195,6 +208,7 @@ public class CalendarFragment extends Fragment {
             indicatorLayout.addView(image);
         }
 
+        cardLayout.addView(deleteEventButton);
         cardLayout.addView(textLayout);
         cardLayout.addView(indicatorLayout);
 

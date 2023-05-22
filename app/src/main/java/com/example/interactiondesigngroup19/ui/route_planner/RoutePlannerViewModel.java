@@ -47,6 +47,7 @@ public class RoutePlannerViewModel extends ViewModelProvider.NewInstanceFactory 
     private Application mApplication;
     private int rainTint, windTint, coatTint, lightTint;
     private float rainScale, windScale, coatScale, lightScale;
+    private int startHour, startMin, endHour, endMin;
 
     public RoutePlannerViewModel(Application application) {
         mText = new MutableLiveData<>();
@@ -119,6 +120,21 @@ public class RoutePlannerViewModel extends ViewModelProvider.NewInstanceFactory 
         return lightScale;
     }
 
+    public int getStartHour() { return startHour; }
+
+    public void setStartHour(int startHour) { this.startHour = startHour; }
+
+    public int getStartMin() { return startMin; }
+
+    public void setStartMin(int startMin) { this.startMin = startMin; }
+
+    public int getEndHour() {return endHour; }
+
+    public void setEndHour(int endHour) {this.endHour = endHour; }
+
+    public int getEndMin() { return endMin; }
+    public void setEndMin(int endMin) { this.endMin = endMin; }
+
     public void callAPI(Application application) {
         mApplication = application;
         // Get context for the current request (N.B. but not used by getWeatherForecast() ?)
@@ -126,8 +142,8 @@ public class RoutePlannerViewModel extends ViewModelProvider.NewInstanceFactory 
 
         // Get location from somewhere
         Location location = new Location("");
-        location.setLatitude(52.2053844);
-        location.setLongitude(0.1189721);
+        location.setLatitude(52.21109);
+        location.setLongitude(0.09135);
         ;
 
         // Get 'time' as a long?
