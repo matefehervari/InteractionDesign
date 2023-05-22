@@ -148,44 +148,87 @@ public class RoutePlannerFragment extends Fragment {
         endHourSpinner.setAdapter(adapter1);
         endMinuteSpinner.setAdapter(adapter2);
 
+        String[] emptyLocList = new String[]{""};
+        ArrayAdapter<String> startSpinnerAdapter = new ArrayAdapter<>(this.getContext(), android.R.layout.simple_spinner_item, emptyLocList);
+        startSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        startSpinner.setAdapter(startSpinnerAdapter);
+        ArrayAdapter<String> endSpinnerAdapter = new ArrayAdapter<>(this.getContext(), android.R.layout.simple_spinner_item, emptyLocList);
+        endSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        endSpinner.setAdapter(endSpinnerAdapter);
+
         startSearchButton.setOnClickListener(view1 -> {
             String search = startEditText.getText().toString();
-            LocationAPI.requestLocation(getActivity(), location ->
-                    WebResourceAPI.listSearchLocation(getContext(), location, search, 5, resultList -> {
-                String[] nameList = new String[resultList.size()];
-                startMap.clear();
-                for (int i = 0; i < resultList.size(); i++) {
-                    nameList[i] = resultList.get(i).title;
-                    startMap.put(resultList.get(i).title, resultList.get(i));
-                }
-                ArrayAdapter<String> startNameAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, nameList);
-                startNameAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                startSpinner.setAdapter(startNameAdapter);
-            }, e -> {
-                        startEditText.getText().clear();
-                    }), e -> {
-                startEditText.getText().clear();
-            });
+            String endName = endSpinner.getSelectedItem().toString();
+            if (endMap.containsKey(endName)) {
+                WebResourceAPI.listSearchLocation(getContext(), endMap.get(endName).lat, endMap.get(endName).lon, search, 5, resultList -> {
+                    String[] nameList = new String[resultList.size()];
+                    startMap.clear();
+                    for (int i = 0; i < resultList.size(); i++) {
+                        nameList[i] = resultList.get(i).addressLabel;
+                        startMap.put(resultList.get(i).addressLabel, resultList.get(i));
+                    }
+                    ArrayAdapter<String> startNameAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, nameList);
+                    startNameAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    startSpinner.setAdapter(startNameAdapter);
+                }, e -> {
+                    startEditText.getText().clear();
+                });
+            } else {
+                LocationAPI.requestLocation(getActivity(), location ->
+                        WebResourceAPI.listSearchLocation(getContext(), location, search, 5, resultList -> {
+                            String[] nameList = new String[resultList.size()];
+                            startMap.clear();
+                            for (int i = 0; i < resultList.size(); i++) {
+                                nameList[i] = resultList.get(i).addressLabel;
+                                startMap.put(resultList.get(i).addressLabel, resultList.get(i));
+                            }
+                            ArrayAdapter<String> startNameAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, nameList);
+                            startNameAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            startSpinner.setAdapter(startNameAdapter);
+                        }, e -> {
+                            startEditText.getText().clear();
+                        }), e -> {
+                    startEditText.getText().clear();
+                });
+            }
+
         });
 
         endSearchButton.setOnClickListener(view1 -> {
             String search = endEditText.getText().toString();
-            LocationAPI.requestLocation(getActivity(), location ->
-                    WebResourceAPI.listSearchLocation(getContext(), location, search, 5, resultList -> {
-                        String[] nameList = new String[resultList.size()];
-                        endMap.clear();
-                        for (int i = 0; i < resultList.size(); i++) {
-                            nameList[i] = resultList.get(i).title;
-                            endMap.put(resultList.get(i).title, resultList.get(i));
-                        }
-                        ArrayAdapter<String> endNameAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, nameList);
-                        endNameAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                        endSpinner.setAdapter(endNameAdapter);
-                    }, e -> {
-                        endEditText.getText().clear();
-                    }), e -> {
-                endEditText.getText().clear();
-            });
+            String startName = startSpinner.getSelectedItem().toString();
+            if (startMap.containsKey(startName)) {
+                WebResourceAPI.listSearchLocation(getContext(), startMap.get(startName).lat, startMap.get(startName).lon, search, 5, resultList -> {
+                    String[] nameList = new String[resultList.size()];
+                    endMap.clear();
+                    for (int i = 0; i < resultList.size(); i++) {
+                        nameList[i] = resultList.get(i).addressLabel;
+                        endMap.put(resultList.get(i).addressLabel, resultList.get(i));
+                    }
+                    ArrayAdapter<String> endNameAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, nameList);
+                    endNameAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    endSpinner.setAdapter(endNameAdapter);
+                }, e -> {
+                    endEditText.getText().clear();
+                });
+            } else {
+                LocationAPI.requestLocation(getActivity(), location ->
+                        WebResourceAPI.listSearchLocation(getContext(), location, search, 5, resultList -> {
+                            String[] nameList = new String[resultList.size()];
+                            endMap.clear();
+                            for (int i = 0; i < resultList.size(); i++) {
+                                nameList[i] = resultList.get(i).addressLabel;
+                                endMap.put(resultList.get(i).addressLabel, resultList.get(i));
+                            }
+                            ArrayAdapter<String> endNameAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, nameList);
+                            endNameAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            endSpinner.setAdapter(endNameAdapter);
+                        }, e -> {
+                            endEditText.getText().clear();
+                        }), e -> {
+                    endEditText.getText().clear();
+                });
+            }
         });
 
         submitButton.setOnClickListener(view1 -> {

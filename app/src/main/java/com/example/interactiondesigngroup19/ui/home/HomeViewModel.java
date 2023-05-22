@@ -136,7 +136,7 @@ public class HomeViewModel extends ViewModelProvider.NewInstanceFactory {
         boolean rainIndicator = volumeOfPrecipitation > 0.5 && probOfPrecipiation > 0.15;
         boolean windIndicator = windSpeed > 4.5;
         boolean coatIndicator = rainIndicator || (currentTemperature < 298.0f && currentTemperature - 0.8f * windSpeed < 278.0f);
-        boolean lightIndicator = currentTime.compareTo(sunriseTime) < 0 || currentTime.compareTo(sunsetTime) > 0;
+        boolean lightIndicator = !weatherResult.day;
 
         // Sets the tint and scaling for the indicator icon values
         tempW.rainTint = rainIndicator ? R.color.rain_indicator_on : R.color.indicator_off;

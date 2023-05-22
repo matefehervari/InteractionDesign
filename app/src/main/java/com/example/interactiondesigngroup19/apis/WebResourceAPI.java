@@ -20,6 +20,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -44,7 +45,7 @@ public class WebResourceAPI {
     private static Map<String, JSONObject> mapRequestCache = new HashMap<>();
     private static Map<String, WeatherResult> weatherResultCache = new HashMap<>();
 
-    public static class WeatherResult {
+    public static class WeatherResult implements Serializable {
         public final float windSpeed;
         public final int windDir;
         public final float windGust;
@@ -118,7 +119,7 @@ public class WebResourceAPI {
         }
     }
 
-    public static class MapLocation {
+    public static class MapLocation implements Serializable {
         public final String title, addressLabel, country;
         public final double lat, lon;
         private static final MapLocation defaultLocation = new MapLocation("Cambridge", "Cambridge", "United Kingdom", 52.21109, 0.09135);
@@ -146,7 +147,7 @@ public class WebResourceAPI {
         }
     }
 
-    public static class Route {
+    public static class Route implements Serializable {
         public final double origLat, origLon, destLat, destLon;
         public final int secsDur;
 
