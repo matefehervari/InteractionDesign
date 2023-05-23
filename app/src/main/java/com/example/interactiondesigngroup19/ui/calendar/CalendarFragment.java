@@ -59,14 +59,14 @@ public class CalendarFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        final Button testButton = binding.button;
-        testButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                CalendarEvent calendarEvent = eventHandler.addRandomEvent();
-                fragmentLinearLayout.addView(createEventCard(calendarEvent));
-            }
-        });
+//        final Button testButton = binding.button;
+//        testButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                CalendarEvent calendarEvent = eventHandler.addRandomEvent();
+//                fragmentLinearLayout.addView(createEventCard(calendarEvent));
+//            }
+//        });
     }
 
     private void createEventCards() {
