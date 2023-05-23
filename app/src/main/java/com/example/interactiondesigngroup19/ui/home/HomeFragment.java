@@ -73,14 +73,14 @@ public class HomeFragment extends Fragment {
             coatIndicatorImage.setColorFilter(ContextCompat.getColor(currContext, weatherUIData.coatTint));
             lightIndicatorImage.setColorFilter(ContextCompat.getColor(currContext, weatherUIData.lightTint));
 
-            rainIndicatorImage.setScaleX(viewModel.getRainScale());
-            rainIndicatorImage.setScaleY(viewModel.getRainScale());
-            windIndicatorImage.setScaleX(viewModel.getWindScale());
-            windIndicatorImage.setScaleY(viewModel.getWindScale());
-            coatIndicatorImage.setScaleX(viewModel.getCoatScale());
-            coatIndicatorImage.setScaleY(viewModel.getCoatScale());
-            lightIndicatorImage.setScaleX(viewModel.getLightScale());
-            lightIndicatorImage.setScaleY(viewModel.getLightScale());
+            rainIndicatorImage.setScaleX(weatherUIData.rainScale);
+            rainIndicatorImage.setScaleY(weatherUIData.rainScale);
+            windIndicatorImage.setScaleX(weatherUIData.windScale);
+            windIndicatorImage.setScaleY(weatherUIData.windScale);
+            coatIndicatorImage.setScaleX(weatherUIData.coatScale);
+            coatIndicatorImage.setScaleY(weatherUIData.coatScale);
+            lightIndicatorImage.setScaleX(weatherUIData.lightScale);
+            lightIndicatorImage.setScaleY(weatherUIData.lightScale);
         });
 
         refresh.setOnClickListener(view1 -> {

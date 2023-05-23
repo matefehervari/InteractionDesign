@@ -100,21 +100,21 @@ public class RoutePlannerFragment extends Fragment {
         viewModel.getWeatherUI().observe(getViewLifecycleOwner(), weatherUIData -> {
 
             // Changes the attributes of the indicator images to indicate on/off
-            Context currContext = getActivity().getApplication().getApplicationContext();
+            Context currContext = getContext();
 
             rainIndicatorImage.setColorFilter(ContextCompat.getColor(currContext, weatherUIData.rainTint));
             windIndicatorImage.setColorFilter(ContextCompat.getColor(currContext, weatherUIData.windTint));
             coatIndicatorImage.setColorFilter(ContextCompat.getColor(currContext, weatherUIData.coatTint));
             lightIndicatorImage.setColorFilter(ContextCompat.getColor(currContext, weatherUIData.lightTint));
 
-            rainIndicatorImage.setScaleX(viewModel.getRainScale());
-            rainIndicatorImage.setScaleY(viewModel.getRainScale());
-            windIndicatorImage.setScaleX(viewModel.getWindScale());
-            windIndicatorImage.setScaleY(viewModel.getWindScale());
-            coatIndicatorImage.setScaleX(viewModel.getCoatScale());
-            coatIndicatorImage.setScaleY(viewModel.getCoatScale());
-            lightIndicatorImage.setScaleX(viewModel.getLightScale());
-            lightIndicatorImage.setScaleY(viewModel.getLightScale());
+            rainIndicatorImage.setScaleX(weatherUIData.rainScale);
+            rainIndicatorImage.setScaleY(weatherUIData.rainScale);
+            windIndicatorImage.setScaleX(weatherUIData.windScale);
+            windIndicatorImage.setScaleY(weatherUIData.windScale);
+            coatIndicatorImage.setScaleX(weatherUIData.coatScale);
+            coatIndicatorImage.setScaleY(weatherUIData.coatScale);
+            lightIndicatorImage.setScaleX(weatherUIData.lightScale);
+            lightIndicatorImage.setScaleY(weatherUIData.lightScale);
         });
 
         routeModel = new RoutePlannerViewModel(getActivity().getApplication());
@@ -281,39 +281,83 @@ public class RoutePlannerFragment extends Fragment {
             String startHour = String.valueOf(routeModel.getStartHour());
             String startMinute = String.valueOf(routeModel.getEndHour());
 
+            LocalTime startTime = LocalTime.of(Integer.parseInt(startHour), Integer.parseInt(startMinute), 0);
+
+            String endHour = String.valueOf(routeModel.getEndHour());
+            String endMinute = String.valueOf(routeModel.getEndMin());
+
+            LocalTime endTime = LocalTime.of(Integer.parseInt(endHour), Integer.parseInt(endMinute), 0);
+
             String[] date = dateSpinner.getSelectedItem().toString().split("/");
             Integer day = Integer.parseInt(date[0]);
             Integer month = Integer.parseInt(date[1]);
             Integer year = Integer.parseInt(date[2]);
 
-            GregorianCalendar startCal = new GregorianCalendar();
-            TimeZone tz = TimeZone.getDefault();
-            startCal.set(year, month, day, Integer.parseInt(startHour), Integer.parseInt(startMinute), 0);
-            startCal.set(Calendar.ZONE_OFFSET, tz.getOffset(startCal.getTimeInMillis()));
+            LocalDate startDate = LocalDate.of(year, month, day);
 
-            LocalTime startTime = LocalTime.of(Integer.parseInt(startHour), Integer.parseInt(startMinute), 0);
+            LocalDateTime startDateTime = LocalDateTime.of(startDate ,startTime);
+            LocalDateTime endDateTime = LocalDateTime.of(startDate ,endTime);
 
-            // Implement check for icons here.
+            ZoneId zoneId = ZoneId.systemDefault(); // or: ZoneId.of("Europe/Oslo");
+            long epoch = startDateTime.atZone(zoneId).toEpochSecond() * 1000;
+            long epochEnd = endDateTime.atZone(zoneId).toEpochSecond() * 1000;
 
-            /*
-            RoutePlannerViewModel model = new RoutePlannerViewModel(getActivity().getApplication());
-            model.callAPI(getActivity().getApplication());
+            String startName = startSpinner.getSelectedItem().toString();
+            String endName = endSpinner.getSelectedItem().toString();
 
-            rainIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getRainTint()));
-            windIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getWindTint()));
-            coatIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getCoatTint()));
-            lightIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getLightTint()));
+            if(startMap.containsKey(startName) && endMap.containsKey(endName)) {
+                WebResourceAPI.MapLocation startLoc = startMap.get(startName);
+                WebResourceAPI.MapLocation endLoc = endMap.get(endName);
+                WebResourceAPI.getWeatherForecast(getContext(), startLoc.lat, startLoc.lon, epoch, res1 -> {
+                    WebResourceAPI.getWeatherForecast(getContext(), endLoc.lat, endLoc.lon, epochEnd, res2 -> {
+                        boolean[] startResults = IndicatorResults.indicatorResults(res1);
+                        boolean[] endResults = IndicatorResults.indicatorResults(res2);
+                        for (int i = 0; i < 4; i++) {
+                            startResults[i] |= endResults[i];
+                        }
+                        viewModel.processWeatherIndicators(startResults);
+                    }, e -> {
+                        boolean[] startResults = IndicatorResults.indicatorResults(res1);
+                        viewModel.processWeatherIndicators(startResults);
+                });}, e -> {});
+            } else if (startMap.containsKey(startName)) {
+                LocationAPI.requestLocation(getActivity(), location -> {
+                    WebResourceAPI.MapLocation startLoc = startMap.get(startName);
+                    WebResourceAPI.MapLocation endLoc = new WebResourceAPI.MapLocation(location);
+                    WebResourceAPI.getWeatherForecast(getContext(), startLoc.lat, startLoc.lon, epoch, res1 -> {
+                        WebResourceAPI.getWeatherForecast(getContext(), endLoc.lat, endLoc.lon, epochEnd, res2 -> {
+                            boolean[] startResults = IndicatorResults.indicatorResults(res1);
+                            boolean[] endResults = IndicatorResults.indicatorResults(res2);
+                            for (int i = 0; i < 4; i++) {
+                                startResults[i] |= endResults[i];
+                            }
+                            viewModel.processWeatherIndicators(startResults);
+                        }, e -> {
+                            boolean[] startResults = IndicatorResults.indicatorResults(res1);
+                            viewModel.processWeatherIndicators(startResults);
+                        });
+                    },e -> {});
+                }, e -> {});
 
-            rainIndicatorImage.setScaleX(model.getRainScale());
-            rainIndicatorImage.setScaleY(model.getRainScale());
-            windIndicatorImage.setScaleX(model.getWindScale());
-            windIndicatorImage.setScaleY(model.getWindScale());
-            coatIndicatorImage.setScaleX(model.getCoatScale());
-            coatIndicatorImage.setScaleY(model.getCoatScale());
-            lightIndicatorImage.setScaleX(model.getLightScale());
-            lightIndicatorImage.setScaleY(model.getLightScale());
-            */
-
+            } else if (endMap.containsKey(endName)) {
+                LocationAPI.requestLocation(getActivity(), location -> {
+                    WebResourceAPI.MapLocation startLoc = new WebResourceAPI.MapLocation(location);
+                    WebResourceAPI.MapLocation endLoc = endMap.get(endName);
+                    WebResourceAPI.getWeatherForecast(getContext(), startLoc.lat, startLoc.lon, epoch, res1 -> {
+                        WebResourceAPI.getWeatherForecast(getContext(), endLoc.lat, endLoc.lon, epochEnd, res2 -> {
+                            boolean[] startResults = IndicatorResults.indicatorResults(res1);
+                            boolean[] endResults = IndicatorResults.indicatorResults(res2);
+                            for (int i = 0; i < 4; i++) {
+                                startResults[i] |= endResults[i];
+                            }
+                            viewModel.processWeatherIndicators(startResults);
+                        }, e -> {
+                            boolean[] startResults = IndicatorResults.indicatorResults(res1);
+                            viewModel.processWeatherIndicators(startResults);
+                        });
+                    },e -> {});
+                }, e -> {});
+            }
         });
 
         final CalendarEventHandler eventHandler = new CalendarEventHandler(getContext());
@@ -340,9 +384,11 @@ public class RoutePlannerFragment extends Fragment {
             LocalDate startDate = LocalDate.of(year, month, day);
 
             LocalDateTime startDateTime = LocalDateTime.of(startDate ,startTime);
+            LocalDateTime endDateTime = LocalDateTime.of(startDate ,endTime);
 
             ZoneId zoneId = ZoneId.systemDefault(); // or: ZoneId.of("Europe/Oslo");
             long epoch = startDateTime.atZone(zoneId).toEpochSecond() * 1000;
+            long epochEnd = endDateTime.atZone(zoneId).toEpochSecond() * 1000;
 
             notesEditText.getText().clear();
 
@@ -353,7 +399,7 @@ public class RoutePlannerFragment extends Fragment {
                 WebResourceAPI.MapLocation startLoc = startMap.get(startName);
                 WebResourceAPI.MapLocation endLoc = endMap.get(endName);
                 WebResourceAPI.getWeatherForecast(getContext(), startLoc.lat, startLoc.lon, epoch, res1 -> {
-                    WebResourceAPI.getWeatherForecast(getContext(), endLoc.lat, endLoc.lon, epoch, res2 -> {
+                    WebResourceAPI.getWeatherForecast(getContext(), endLoc.lat, endLoc.lon, epochEnd, res2 -> {
                         boolean[] startResults = IndicatorResults.indicatorResults(res1);
                         boolean[] endResults = IndicatorResults.indicatorResults(res2);
                         for (int i = 0; i < 4; i++) {
@@ -374,7 +420,7 @@ public class RoutePlannerFragment extends Fragment {
                         WebResourceAPI.MapLocation startLoc = startMap.get(startName);
                         WebResourceAPI.MapLocation endLoc = new WebResourceAPI.MapLocation(location);
                         WebResourceAPI.getWeatherForecast(getContext(), startLoc.lat, startLoc.lon, epoch, res1 -> {
-                            WebResourceAPI.getWeatherForecast(getContext(), endLoc.lat, endLoc.lon, epoch, res2 -> {
+                            WebResourceAPI.getWeatherForecast(getContext(), endLoc.lat, endLoc.lon, epochEnd, res2 -> {
                                 boolean[] startResults = IndicatorResults.indicatorResults(res1);
                                 boolean[] endResults = IndicatorResults.indicatorResults(res2);
                                 for (int i = 0; i < 4; i++) {
@@ -399,7 +445,7 @@ public class RoutePlannerFragment extends Fragment {
                     WebResourceAPI.MapLocation startLoc = new WebResourceAPI.MapLocation(location);
                     WebResourceAPI.MapLocation endLoc = endMap.get(endName);
                     WebResourceAPI.getWeatherForecast(getContext(), startLoc.lat, startLoc.lon, epoch, res1 -> {
-                        WebResourceAPI.getWeatherForecast(getContext(), endLoc.lat, endLoc.lon, epoch, res2 -> {
+                        WebResourceAPI.getWeatherForecast(getContext(), endLoc.lat, endLoc.lon, epochEnd, res2 -> {
                             boolean[] startResults = IndicatorResults.indicatorResults(res1);
                             boolean[] endResults = IndicatorResults.indicatorResults(res2);
                             for (int i = 0; i < 4; i++) {
