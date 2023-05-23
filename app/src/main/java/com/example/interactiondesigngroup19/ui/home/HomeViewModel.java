@@ -12,6 +12,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.interactiondesigngroup19.R;
+import com.example.interactiondesigngroup19.apis.IndicatorResults;
 import com.example.interactiondesigngroup19.apis.LocationAPI;
 import com.example.interactiondesigngroup19.apis.WebResourceAPI;
 import com.google.android.material.snackbar.Snackbar;
@@ -22,7 +23,7 @@ public class HomeViewModel extends ViewModelProvider.NewInstanceFactory {
 
     private MutableLiveData<String> mText;
 
-    public class WeatherUIData {
+    public static class WeatherUIData {
         public final int mImageID;
         public final int rainTint, windTint, coatTint, lightTint;
         public final float rainScale, windScale, coatScale, lightScale;
@@ -52,7 +53,7 @@ public class HomeViewModel extends ViewModelProvider.NewInstanceFactory {
         }
     }
 
-    public class MutableWeatherUIData {
+    public static class MutableWeatherUIData {
         public int mImageID;
         public int rainTint, windTint, coatTint, lightTint;
         public float rainScale, windScale, coatScale, lightScale;
@@ -89,7 +90,7 @@ public class HomeViewModel extends ViewModelProvider.NewInstanceFactory {
         mText = new MutableLiveData<>();
         weatherUIData = new MutableLiveData<>(new WeatherUIData(0,
                 R.color.indicator_off, R.color.indicator_off, R.color.indicator_off, R.color.indicator_off,
-                1.0f, 1.0f, 1.0f, 1.0f));
+                0.5f, 0.5f, 0.5f, 0.5f));
         mApplication = application;
 
         // processWeatherRequest();
@@ -100,15 +101,7 @@ public class HomeViewModel extends ViewModelProvider.NewInstanceFactory {
         String generalWeatherDescription = weatherResult.main.toLowerCase();
         MutableWeatherUIData tempW = new MutableWeatherUIData(weatherUIData.getValue());
 
-        float probOfPrecipiation = weatherResult.pop;
-        float volumeOfPrecipitation = weatherResult.rain;
-        float windSpeed = weatherResult.windSpeed;
         float currentTemperature = weatherResult.temp;
-
-        // N.B. Could alternatively convert to strings and compare like that
-        Instant currentTime = Instant.now();
-        Instant sunriseTime = Instant.now();
-        Instant sunsetTime = Instant.now();
 
         // Formats the weather information for calculating front page information
         // Deals with the temperature and the main image
@@ -133,21 +126,18 @@ public class HomeViewModel extends ViewModelProvider.NewInstanceFactory {
         }
 
         // Deals with boolean indicator icon values
-        boolean rainIndicator = volumeOfPrecipitation > 0.5 && probOfPrecipiation > 0.15;
-        boolean windIndicator = windSpeed > 4.5;
-        boolean coatIndicator = rainIndicator || (currentTemperature < 298.0f && currentTemperature - 0.8f * windSpeed < 278.0f);
-        boolean lightIndicator = !weatherResult.day;
+        boolean[] indicatorResults = IndicatorResults.indicatorResults(weatherResult);
 
         // Sets the tint and scaling for the indicator icon values
-        tempW.rainTint = rainIndicator ? R.color.rain_indicator_on : R.color.indicator_off;
-        tempW.windTint = windIndicator ? R.color.wind_indicator_on : R.color.indicator_off;
-        tempW.coatTint = coatIndicator ? R.color.coat_indicator_on : R.color.indicator_off;
-        tempW.lightTint = lightIndicator ? R.color.light_indicator_on : R.color.indicator_off;
+        tempW.rainTint = indicatorResults[0] ? R.color.rain_indicator_on : R.color.indicator_off;
+        tempW.windTint = indicatorResults[1] ? R.color.wind_indicator_on : R.color.indicator_off;
+        tempW.coatTint = indicatorResults[2] ? R.color.coat_indicator_on : R.color.indicator_off;
+        tempW.lightTint = indicatorResults[3] ? R.color.light_indicator_on : R.color.indicator_off;
 
-        tempW.rainScale = rainIndicator ? 1.0f : 0.5f;
-        tempW.windScale = windIndicator ? 1.0f : 0.5f;
-        tempW.coatScale = coatIndicator ? 1.0f : 0.5f;
-        tempW.lightScale = lightIndicator ? 1.0f : 0.5f;
+        tempW.rainScale = indicatorResults[0] ? 1.0f : 0.5f;
+        tempW.windScale = indicatorResults[1] ? 1.0f : 0.5f;
+        tempW.coatScale = indicatorResults[2] ? 1.0f : 0.5f;
+        tempW.lightScale = indicatorResults[3] ? 1.0f : 0.5f;
 
         weatherUIData.setValue(new WeatherUIData(tempW));
     }

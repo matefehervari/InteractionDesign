@@ -184,7 +184,7 @@ public class WebResourceAPI {
         for (int i = 0; i < num; i++) {
             try {
                 WeatherResult w = new WeatherResult(response.getJSONArray("list").getJSONObject(i));
-                long cacheTime = w.time / (1000 * 60 * 60 * 3);
+                long cacheTime = w.time / (60 * 60 * 3);
                 cacheRequest = String.format(Locale.UK, "F:T:%d Lat:%.3f Lon:%.3f", cacheTime, lat, lon);
                 weatherResultCache.put(cacheRequest, w);
             } finally {

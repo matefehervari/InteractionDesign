@@ -1,6 +1,7 @@
 package com.example.interactiondesigngroup19.ui.route_planner;
 
 import android.app.TimePickerDialog;
+import android.content.Context;
 import android.icu.util.GregorianCalendar;
 import android.icu.util.TimeZone;
 import android.os.Bundle;
@@ -17,13 +18,16 @@ import android.widget.TimePicker;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.example.interactiondesigngroup19.apis.IndicatorResults;
 import com.example.interactiondesigngroup19.apis.LocationAPI;
 import com.example.interactiondesigngroup19.apis.WebResourceAPI;
 import com.example.interactiondesigngroup19.databinding.FragmentRoutePlannerBinding;
 import com.example.interactiondesigngroup19.ui.calendar.CalendarEventHandler;
 import com.example.interactiondesigngroup19.ui.util.Indicator;
+import com.example.interactiondesigngroup19.ui.util.IndicatorHelper;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -90,6 +94,28 @@ public class RoutePlannerFragment extends Fragment {
 
         final Map<String, WebResourceAPI.MapLocation> startMap = new HashMap<>();
         final Map<String, WebResourceAPI.MapLocation> endMap = new HashMap<>();
+
+        final RoutePlannerViewModel viewModel = new RoutePlannerViewModel(getActivity().getApplication());
+
+        viewModel.getWeatherUI().observe(getViewLifecycleOwner(), weatherUIData -> {
+
+            // Changes the attributes of the indicator images to indicate on/off
+            Context currContext = getActivity().getApplication().getApplicationContext();
+
+            rainIndicatorImage.setColorFilter(ContextCompat.getColor(currContext, weatherUIData.rainTint));
+            windIndicatorImage.setColorFilter(ContextCompat.getColor(currContext, weatherUIData.windTint));
+            coatIndicatorImage.setColorFilter(ContextCompat.getColor(currContext, weatherUIData.coatTint));
+            lightIndicatorImage.setColorFilter(ContextCompat.getColor(currContext, weatherUIData.lightTint));
+
+            rainIndicatorImage.setScaleX(viewModel.getRainScale());
+            rainIndicatorImage.setScaleY(viewModel.getRainScale());
+            windIndicatorImage.setScaleX(viewModel.getWindScale());
+            windIndicatorImage.setScaleY(viewModel.getWindScale());
+            coatIndicatorImage.setScaleX(viewModel.getCoatScale());
+            coatIndicatorImage.setScaleY(viewModel.getCoatScale());
+            lightIndicatorImage.setScaleX(viewModel.getLightScale());
+            lightIndicatorImage.setScaleY(viewModel.getLightScale());
+        });
 
         routeModel = new RoutePlannerViewModel(getActivity().getApplication());
 
@@ -281,81 +307,68 @@ public class RoutePlannerFragment extends Fragment {
         });
 
         final CalendarEventHandler eventHandler = new CalendarEventHandler(getContext());
-        calendarButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        calendarButton.setOnClickListener(view1 -> {
 
+            // Get data and send off to calendar
 
-                RoutePlannerViewModel model = new RoutePlannerViewModel(getActivity().getApplication());
-                model.callAPI(getActivity().getApplication());
+            String startHour = String.valueOf(routeModel.getStartHour());
+            String startMinute = String.valueOf(routeModel.getEndHour());
+            String[] date = dateSpinner.getSelectedItem().toString().split("/");
+            Integer day = Integer.parseInt(date[0]);
+            Integer month = Integer.parseInt(date[1]);
+            Integer year = Integer.parseInt(date[2]);
 
-                // Indicator Icons
-//                rainIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getRainTint()));
-//                windIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getWindTint()));
-//                coatIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getCoatTint()));
-//                lightIndicatorImage.setColorFilter(ContextCompat.getColor(getContext(), model.getLightTint()));
+            LocalTime startTime = LocalTime.of(Integer.parseInt(startHour), Integer.parseInt(startMinute), 0);
 
+            String endHour = String.valueOf(routeModel.getEndHour());
+            String endMinute = String.valueOf(routeModel.getEndMin());
 
+            LocalTime endTime = LocalTime.of(Integer.parseInt(endHour), Integer.parseInt(endMinute), 0);
 
-                rainIndicatorImage.setScaleX(model.getRainScale());
-                rainIndicatorImage.setScaleY(model.getRainScale());
-                windIndicatorImage.setScaleX(model.getWindScale());
-                windIndicatorImage.setScaleY(model.getWindScale());
-                coatIndicatorImage.setScaleX(model.getCoatScale());
-                coatIndicatorImage.setScaleY(model.getCoatScale());
-                lightIndicatorImage.setScaleX(model.getLightScale());
-                lightIndicatorImage.setScaleY(model.getLightScale());
+            String notes = notesEditText.getText().toString();
 
+            LocalDate startDate = LocalDate.of(year, month, day);
 
-                // Get data and send off to calendar
+            LocalDateTime startDateTime = LocalDateTime.of(startDate ,startTime);
 
-                String startHour = String.valueOf(routeModel.getStartHour());
-                String startMinute = String.valueOf(routeModel.getEndHour());
-                String[] date = dateSpinner.getSelectedItem().toString().split("/");
-                Integer day = Integer.parseInt(date[0]);
-                Integer month = Integer.parseInt(date[1]);
-                Integer year = Integer.parseInt(date[2]);
+            ZoneId zoneId = ZoneId.systemDefault(); // or: ZoneId.of("Europe/Oslo");
+            long epoch = startDateTime.atZone(zoneId).toEpochSecond() * 1000;
 
-                LocalTime startTime = LocalTime.of(Integer.parseInt(startHour), Integer.parseInt(startMinute), 0);
+            notesEditText.getText().clear();
 
-                String endHour = String.valueOf(routeModel.getEndHour());
-                String endMinute = String.valueOf(routeModel.getEndMin());
+            String startName = startSpinner.getSelectedItem().toString();
+            String endName = endSpinner.getSelectedItem().toString();
 
-                LocalTime endTime = LocalTime.of(Integer.parseInt(endHour), Integer.parseInt(endMinute), 0);
+            if(startMap.containsKey(startName) && endMap.containsKey(endName)) {
+                WebResourceAPI.MapLocation startLoc = startMap.get(startName);
+                WebResourceAPI.MapLocation endLoc = endMap.get(endName);
+                WebResourceAPI.getWeatherForecast(getContext(), startLoc.lat, startLoc.lon, epoch, res1 -> {
+                    WebResourceAPI.getWeatherForecast(getContext(), endLoc.lat, endLoc.lon, epoch, res2 -> {
+                        boolean[] startResults = IndicatorResults.indicatorResults(res1);
+                        boolean[] endResults = IndicatorResults.indicatorResults(res2);
+                        for (int i = 0; i < 4; i++) {
+                            startResults[i] |= endResults[i];
+                        }
+                        viewModel.processWeatherIndicators(startResults);
+                        eventHandler.addEvent(startDateTime, endTime, IndicatorHelper.fromArray(startResults), notes,
+                                startLoc, endLoc);
+                    }, e -> {});
+                }, e -> {});
+            } else if (startMap.containsKey(startName)) {
+                LocationAPI.requestLocation(getActivity(), location ->
 
-                String notes = notesEditText.getText().toString();
+                        eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
+                        startMap.get(startName), new WebResourceAPI.MapLocation(location)), e -> eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
+                        startMap.get(startName), WebResourceAPI.MapLocation.getDefaultMapLocation()));
 
-                LocalDate startDate = LocalDate.of(year, month, day);
-
-                LocalDateTime startDateTime = LocalDateTime.of(startDate ,startTime);
-
-                ZoneId zoneId = ZoneId.systemDefault(); // or: ZoneId.of("Europe/Oslo");
-                long epoch = startDateTime.atZone(zoneId).toEpochSecond();
-
-                notesEditText.getText().clear();
-
-                String startName = startSpinner.getSelectedItem().toString();
-                String endName = endSpinner.getSelectedItem().toString();
-
-                if(startMap.containsKey(startName) && endMap.containsKey(endName)) {
-                    eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
-                            startMap.get(startName), endMap.get(endName));
-                } else if (startMap.containsKey(startName)) {
-                    LocationAPI.requestLocation(getActivity(), location ->
-
-                            eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
-                            startMap.get(startName), new WebResourceAPI.MapLocation(location)), e -> eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
-                            startMap.get(startName), WebResourceAPI.MapLocation.getDefaultMapLocation()));
-
-                } else if (endMap.containsKey(endName)) {
-                    LocationAPI.requestLocation(getActivity(), location ->
-                            eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
-                            new WebResourceAPI.MapLocation(location), endMap.get(endName)), e -> eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
-                            WebResourceAPI.MapLocation.getDefaultMapLocation(), endMap.get(endName)));
-                } else {
-                    eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
-                            WebResourceAPI.MapLocation.getDefaultMapLocation(), WebResourceAPI.MapLocation.getDefaultMapLocation());
-                }
+            } else if (endMap.containsKey(endName)) {
+                LocationAPI.requestLocation(getActivity(), location ->
+                        eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
+                        new WebResourceAPI.MapLocation(location), endMap.get(endName)), e -> eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
+                        WebResourceAPI.MapLocation.getDefaultMapLocation(), endMap.get(endName)));
+            } else {
+                eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
+                        WebResourceAPI.MapLocation.getDefaultMapLocation(), WebResourceAPI.MapLocation.getDefaultMapLocation());
             }
         });
 

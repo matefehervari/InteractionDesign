@@ -25,8 +25,10 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.interactiondesigngroup19.MainActivity;
 import com.example.interactiondesigngroup19.R;
+import com.example.interactiondesigngroup19.apis.IndicatorResults;
 import com.example.interactiondesigngroup19.apis.WebResourceAPI;
 import com.example.interactiondesigngroup19.ui.calendar.CalendarEvent;
+import com.example.interactiondesigngroup19.ui.home.HomeViewModel;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
@@ -35,15 +37,10 @@ import java.time.Instant;
 public class RoutePlannerViewModel extends ViewModelProvider.NewInstanceFactory {
 
     private MutableLiveData<String> mText;
-    private int mImageID;
 
-    private Location location;
+    private MutableLiveData<HomeViewModel.WeatherUIData> weatherUIData;
 
     private Context currentContext;
-    private long time;
-
-    private OnSuccessListener<WebResourceAPI.WeatherResult> weatherResultListener;
-    private OnFailureListener failureListener;
     private Application mApplication;
     private int rainTint, windTint, coatTint, lightTint;
     private float rainScale, windScale, coatScale, lightScale;
@@ -51,48 +48,56 @@ public class RoutePlannerViewModel extends ViewModelProvider.NewInstanceFactory 
 
     public RoutePlannerViewModel(Application application) {
         mText = new MutableLiveData<>();
-
+        weatherUIData = new MutableLiveData<>(new HomeViewModel.WeatherUIData(0,
+                R.color.indicator_off, R.color.indicator_off, R.color.indicator_off, R.color.indicator_off,
+                0.5f, 0.5f, 0.5f, 0.5f));
         // processWeatherRequest();
     }
 
-    public void processWeatherRequest(WebResourceAPI.WeatherResult weatherResult) {
-
-        float probOfPrecipiation = weatherResult.pop;
-        float volumeOfPrecipitation = weatherResult.rain;
-        float windSpeed = weatherResult.windSpeed;
-        float currentTemperature = weatherResult.temp;
-
-        // N.B. Could alternatively convert to strings and compare like that
-        Instant currentTime = Instant.now();
-        Instant sunriseTime = Instant.now();
-        Instant sunsetTime = Instant.now();
-
-
-        // Deals with boolean indicator icon values
-        boolean rainIndicator = volumeOfPrecipitation > 0.5 && probOfPrecipiation > 0.15;
-        boolean windIndicator = windSpeed > 4.5;
-        boolean coatIndicator = rainIndicator || (currentTemperature < 298.0f && currentTemperature - 0.8f * windSpeed < 278.0f);
-        boolean lightIndicator = currentTime.compareTo(sunriseTime) < 0 || currentTime.compareTo(sunsetTime) > 0;
+    public void processWeatherIndicators(boolean[] indicatorResults) {
+        HomeViewModel.MutableWeatherUIData tempW = new HomeViewModel.MutableWeatherUIData(weatherUIData.getValue());
 
         // Sets the tint and scaling for the indicator icon values
-        rainTint = rainIndicator ? R.color.rain_indicator_on : R.color.indicator_off;
-        windTint = windIndicator ? R.color.wind_indicator_on : R.color.indicator_off;
-        coatTint = coatIndicator ? R.color.coat_indicator_on : R.color.indicator_off;
-        lightTint = lightIndicator ? R.color.light_indicator_on : R.color.indicator_off;
+        tempW.rainTint = indicatorResults[0] ? R.color.rain_indicator_on : R.color.indicator_off;
+        tempW.windTint = indicatorResults[1] ? R.color.wind_indicator_on : R.color.indicator_off;
+        tempW.coatTint = indicatorResults[2] ? R.color.coat_indicator_on : R.color.indicator_off;
+        tempW.lightTint = indicatorResults[3] ? R.color.light_indicator_on : R.color.indicator_off;
 
-        rainScale = rainIndicator ? 1.0f : 0.5f;
-        windScale = windIndicator ? 1.0f : 0.5f;
-        coatScale = coatIndicator ? 1.0f : 0.5f;
-        lightScale = lightIndicator ? 1.0f : 0.5f;
+        tempW.rainScale = indicatorResults[0] ? 1.0f : 0.5f;
+        tempW.windScale = indicatorResults[1] ? 1.0f : 0.5f;
+        tempW.coatScale = indicatorResults[2] ? 1.0f : 0.5f;
+        tempW.lightScale = indicatorResults[3] ? 1.0f : 0.5f;
+
+        weatherUIData.setValue(new HomeViewModel.WeatherUIData(tempW));
     }
+
+    public void processWeatherRequest(WebResourceAPI.WeatherResult weatherResult) {
+        String generalWeatherDescription = weatherResult.main.toLowerCase();
+        HomeViewModel.MutableWeatherUIData tempW = new HomeViewModel.MutableWeatherUIData(weatherUIData.getValue());
+
+        // Deals with boolean indicator icon values
+        boolean[] indicatorResults = IndicatorResults.indicatorResults(weatherResult);
+
+        // Sets the tint and scaling for the indicator icon values
+        tempW.rainTint = indicatorResults[0] ? R.color.rain_indicator_on : R.color.indicator_off;
+        tempW.windTint = indicatorResults[1] ? R.color.wind_indicator_on : R.color.indicator_off;
+        tempW.coatTint = indicatorResults[2] ? R.color.coat_indicator_on : R.color.indicator_off;
+        tempW.lightTint = indicatorResults[3] ? R.color.light_indicator_on : R.color.indicator_off;
+
+        tempW.rainScale = indicatorResults[0] ? 1.0f : 0.5f;
+        tempW.windScale = indicatorResults[1] ? 1.0f : 0.5f;
+        tempW.coatScale = indicatorResults[2] ? 1.0f : 0.5f;
+        tempW.lightScale = indicatorResults[3] ? 1.0f : 0.5f;
+
+        weatherUIData.setValue(new HomeViewModel.WeatherUIData(tempW));
+    }
+
 
     public LiveData<String> getText() {
         return mText;
     }
 
-    public int getImageID() {
-        return mImageID;
-    }
+    public LiveData<HomeViewModel.WeatherUIData> getWeatherUI() { return weatherUIData; }
 
     public int getRainTint() {
         return rainTint;
