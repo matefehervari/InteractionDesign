@@ -194,6 +194,11 @@ public class RoutePlannerFragment extends Fragment {
         startSearchButton.setOnClickListener(view1 -> {
             String search = startEditText.getText().toString();
             String endName = endSpinner.getSelectedItem().toString();
+
+            ArrayAdapter<String> startLoadAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, new String[]{"Loading..."});
+            startLoadAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            startSpinner.setAdapter(startLoadAdapter);
+
             if (endMap.containsKey(endName)) {
                 WebResourceAPI.listSearchLocation(getContext(), endMap.get(endName).lat, endMap.get(endName).lon, search, 5, resultList -> {
                     String[] nameList = new String[resultList.size()];
@@ -232,6 +237,11 @@ public class RoutePlannerFragment extends Fragment {
         endSearchButton.setOnClickListener(view1 -> {
             String search = endEditText.getText().toString();
             String startName = startSpinner.getSelectedItem().toString();
+
+            ArrayAdapter<String> endLoadAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, new String[]{"Loading..."});
+            endLoadAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            endSpinner.setAdapter(endLoadAdapter);
+
             if (startMap.containsKey(startName)) {
                 WebResourceAPI.listSearchLocation(getContext(), startMap.get(startName).lat, startMap.get(startName).lon, search, 5, resultList -> {
                     String[] nameList = new String[resultList.size()];
@@ -352,20 +362,62 @@ public class RoutePlannerFragment extends Fragment {
                         viewModel.processWeatherIndicators(startResults);
                         eventHandler.addEvent(startDateTime, endTime, IndicatorHelper.fromArray(startResults), notes,
                                 startLoc, endLoc);
-                    }, e -> {});
-                }, e -> {});
+                    }, e -> {
+                        boolean[] startResults = IndicatorResults.indicatorResults(res1);
+                        viewModel.processWeatherIndicators(startResults);
+                        eventHandler.addEvent(startDateTime, endTime, IndicatorHelper.fromArray(startResults), notes,
+                            startLoc, endLoc);});
+                }, e -> {eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
+                        startLoc, endLoc);});
             } else if (startMap.containsKey(startName)) {
-                LocationAPI.requestLocation(getActivity(), location ->
-
-                        eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
-                        startMap.get(startName), new WebResourceAPI.MapLocation(location)), e -> eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
+                LocationAPI.requestLocation(getActivity(), location -> {
+                        WebResourceAPI.MapLocation startLoc = startMap.get(startName);
+                        WebResourceAPI.MapLocation endLoc = new WebResourceAPI.MapLocation(location);
+                        WebResourceAPI.getWeatherForecast(getContext(), startLoc.lat, startLoc.lon, epoch, res1 -> {
+                            WebResourceAPI.getWeatherForecast(getContext(), endLoc.lat, endLoc.lon, epoch, res2 -> {
+                                boolean[] startResults = IndicatorResults.indicatorResults(res1);
+                                boolean[] endResults = IndicatorResults.indicatorResults(res2);
+                                for (int i = 0; i < 4; i++) {
+                                    startResults[i] |= endResults[i];
+                                }
+                                viewModel.processWeatherIndicators(startResults);
+                                eventHandler.addEvent(startDateTime, endTime, IndicatorHelper.fromArray(startResults), notes,
+                                        startLoc, endLoc);
+                                }, e -> {
+                                boolean[] startResults = IndicatorResults.indicatorResults(res1);
+                                viewModel.processWeatherIndicators(startResults);
+                                eventHandler.addEvent(startDateTime, endTime, IndicatorHelper.fromArray(startResults), notes,
+                                        startLoc, endLoc);
+                            });
+                            },e -> eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
+                                    startMap.get(startName), WebResourceAPI.MapLocation.getDefaultMapLocation()));
+                            }, e -> eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
                         startMap.get(startName), WebResourceAPI.MapLocation.getDefaultMapLocation()));
 
             } else if (endMap.containsKey(endName)) {
-                LocationAPI.requestLocation(getActivity(), location ->
-                        eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
-                        new WebResourceAPI.MapLocation(location), endMap.get(endName)), e -> eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
-                        WebResourceAPI.MapLocation.getDefaultMapLocation(), endMap.get(endName)));
+                LocationAPI.requestLocation(getActivity(), location -> {
+                    WebResourceAPI.MapLocation startLoc = new WebResourceAPI.MapLocation(location);
+                    WebResourceAPI.MapLocation endLoc = endMap.get(endName);
+                    WebResourceAPI.getWeatherForecast(getContext(), startLoc.lat, startLoc.lon, epoch, res1 -> {
+                        WebResourceAPI.getWeatherForecast(getContext(), endLoc.lat, endLoc.lon, epoch, res2 -> {
+                            boolean[] startResults = IndicatorResults.indicatorResults(res1);
+                            boolean[] endResults = IndicatorResults.indicatorResults(res2);
+                            for (int i = 0; i < 4; i++) {
+                                startResults[i] |= endResults[i];
+                            }
+                            viewModel.processWeatherIndicators(startResults);
+                            eventHandler.addEvent(startDateTime, endTime, IndicatorHelper.fromArray(startResults), notes,
+                                    startLoc, endLoc);
+                        }, e -> {
+                            boolean[] startResults = IndicatorResults.indicatorResults(res1);
+                            viewModel.processWeatherIndicators(startResults);
+                            eventHandler.addEvent(startDateTime, endTime, IndicatorHelper.fromArray(startResults), notes,
+                                    startLoc, endLoc);
+                        });
+                    },e -> eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
+                            startMap.get(startName), WebResourceAPI.MapLocation.getDefaultMapLocation()));
+                }, e -> eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
+                        startMap.get(startName), WebResourceAPI.MapLocation.getDefaultMapLocation()));
             } else {
                 eventHandler.addEvent(startDateTime, endTime, new LinkedList<Indicator>(), notes,
                         WebResourceAPI.MapLocation.getDefaultMapLocation(), WebResourceAPI.MapLocation.getDefaultMapLocation());
