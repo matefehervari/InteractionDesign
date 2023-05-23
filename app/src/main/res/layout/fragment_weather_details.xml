@@ -39,7 +39,7 @@
                     android:layout_height="300dp"
                     android:layout_gravity="center"
                     android:layout_weight="4"
-                    android:src="@android:drawable/ic_lock_power_off"
+                    android:src="@drawable/sunny_main_image"
                     tools:ignore="ContentDescription" />
 
                 <TextView

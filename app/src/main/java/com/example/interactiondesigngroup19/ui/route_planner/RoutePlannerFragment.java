@@ -322,7 +322,7 @@ public class RoutePlannerFragment extends Fragment {
             // Get data and send off to calendar
 
             String startHour = String.valueOf(routeModel.getStartHour());
-            String startMinute = String.valueOf(routeModel.getEndHour());
+            String startMinute = String.valueOf(routeModel.getStartMin());
             String[] date = dateSpinner.getSelectedItem().toString().split("/");
             Integer day = Integer.parseInt(date[0]);
             Integer month = Integer.parseInt(date[1]);
