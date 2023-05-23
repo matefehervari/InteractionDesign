@@ -165,9 +165,6 @@ public class RoutePlannerFragment extends Fragment {
 
         dateSpinner.setAdapter(adapter3);
 
-//        endHourSpinner.setAdapter(adapter1);
-//        endMinuteSpinner.setAdapter(adapter2);
-
         String[] emptyLocList = new String[]{""};
         ArrayAdapter<String> startSpinnerAdapter = new ArrayAdapter<>(this.getContext(), android.R.layout.simple_spinner_item, emptyLocList);
         startSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
