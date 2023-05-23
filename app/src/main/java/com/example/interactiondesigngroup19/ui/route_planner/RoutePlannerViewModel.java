@@ -42,8 +42,6 @@ public class RoutePlannerViewModel extends ViewModelProvider.NewInstanceFactory 
 
     private Context currentContext;
     private Application mApplication;
-    private int rainTint, windTint, coatTint, lightTint;
-    private float rainScale, windScale, coatScale, lightScale;
     private int startHour, startMin, endHour, endMin;
 
     public RoutePlannerViewModel(Application application) {
@@ -99,32 +97,6 @@ public class RoutePlannerViewModel extends ViewModelProvider.NewInstanceFactory 
 
     public LiveData<HomeViewModel.WeatherUIData> getWeatherUI() { return weatherUIData; }
 
-    public int getRainTint() {
-        return rainTint;
-    }
-    public int getWindTint() {
-        return windTint;
-    }
-    public int getCoatTint() {
-        return coatTint;
-    }
-    public int getLightTint() {
-        return lightTint;
-    }
-
-    public float getRainScale() {
-        return rainScale;
-    }
-    public float getWindScale() {
-        return windScale;
-    }
-    public float getCoatScale() {
-        return coatScale;
-    }
-    public float getLightScale() {
-        return lightScale;
-    }
-
     public int getStartHour() { return startHour; }
 
     public void setStartHour(int startHour) { this.startHour = startHour; }
@@ -154,24 +126,8 @@ public class RoutePlannerViewModel extends ViewModelProvider.NewInstanceFactory 
         // Get 'time' as a long?
         long time = System.currentTimeMillis();
 
-        OnSuccessListener<WebResourceAPI.WeatherResult> weatherResultListener = new OnSuccessListener<WebResourceAPI.WeatherResult>() {
-            @Override
-            public void onSuccess(WebResourceAPI.WeatherResult weatherResult) {
-                processWeatherRequest(weatherResult);
-            }
-        };
-
-        // Deal with failure of API request?
-        OnFailureListener failureListener = new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                rainTint = R.color.indicator_off;
-                windTint = R.color.indicator_off;
-                coatTint = R.color.indicator_off;
-                lightTint = R.color.indicator_off;
-            }
-        };
-
-        WebResourceAPI.getWeatherForecast(currentContext, location, time, weatherResultListener, failureListener);
+        WebResourceAPI.getWeatherForecast(currentContext, location, time, this::processWeatherRequest, e -> {
+            weatherUIData.setValue(HomeViewModel.WeatherUIData.defaultIcons);
+        });
     }
 }

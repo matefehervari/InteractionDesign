@@ -27,7 +27,9 @@ public class HomeViewModel extends ViewModelProvider.NewInstanceFactory {
         public final int mImageID;
         public final int rainTint, windTint, coatTint, lightTint;
         public final float rainScale, windScale, coatScale, lightScale;
-
+        public static final WeatherUIData defaultIcons = new WeatherUIData(0,
+                R.color.indicator_off, R.color.indicator_off, R.color.indicator_off, R.color.indicator_off,
+                0.5f, 0.5f, 0.5f, 0.5f);
         public WeatherUIData(int mImageID, int rainTint, int windTint, int coatTint, int lightTint, float rainScale, float windScale, float coatScale, float lightScale) {
             this.mImageID = mImageID;
             this.rainTint = rainTint;
@@ -88,9 +90,7 @@ public class HomeViewModel extends ViewModelProvider.NewInstanceFactory {
 
     public HomeViewModel(Application application) {
         mText = new MutableLiveData<>();
-        weatherUIData = new MutableLiveData<>(new WeatherUIData(0,
-                R.color.indicator_off, R.color.indicator_off, R.color.indicator_off, R.color.indicator_off,
-                0.5f, 0.5f, 0.5f, 0.5f));
+        weatherUIData = new MutableLiveData<>(WeatherUIData.defaultIcons);
         mApplication = application;
 
         // processWeatherRequest();
@@ -147,34 +147,6 @@ public class HomeViewModel extends ViewModelProvider.NewInstanceFactory {
     }
     public LiveData<WeatherUIData> getWeatherUI() { return weatherUIData; }
 
-    public int getImageID() {
-        return weatherUIData.getValue().mImageID;
-    }
-
-    public int getRainTint() {
-        return weatherUIData.getValue().rainTint;
-    }
-    public int getWindTint() {
-        return weatherUIData.getValue().windTint;
-    }
-    public int getCoatTint() { return weatherUIData.getValue().coatTint; }
-    public int getLightTint() {
-        return weatherUIData.getValue().lightTint;
-    }
-
-    public float getRainScale() {
-        return weatherUIData.getValue().rainScale;
-    }
-    public float getWindScale() {
-        return weatherUIData.getValue().windScale;
-    }
-    public float getCoatScale() {
-        return weatherUIData.getValue().coatScale;
-    }
-    public float getLightScale() {
-        return weatherUIData.getValue().lightScale;
-    }
-
     public void callAPI(FragmentActivity activity, View view) {
         // Get context for the current request (N.B. but not used by getWeatherForecast() ?)
         Context currentContext = mApplication.getApplicationContext();
@@ -209,16 +181,10 @@ public class HomeViewModel extends ViewModelProvider.NewInstanceFactory {
         // Get location from somewhere
         LocationAPI.requestLocation(activity, (Location loc) -> {
             WebResourceAPI.getWeatherCurrent(currentContext, loc, this::processWeatherRequest, (Exception e) -> {
-                //Debug please remove
-                processWeatherRequest(new WebResourceAPI.WeatherResult(1.3f, 265, 4.3f, 0.4f,
-                        180.3f, 182.2f, 183.3f, 175.7f, System.currentTimeMillis(), "", 10000,
-                        "sunny", "rain", 72, 0.3f, 0f, true));
+                weatherUIData.setValue(WeatherUIData.defaultIcons);
             });
         }, (Exception e) -> {
-            //Debug please remove
-            processWeatherRequest(new WebResourceAPI.WeatherResult(1.3f, 265, 4.3f, 0.4f,
-                    182.3f, 190.2f, 190.3f, 180.7f, System.currentTimeMillis(), "", 10000,
-                    "rain", "rain", 72, 0.3f, 0f, true));
+            weatherUIData.setValue(WeatherUIData.defaultIcons);
         });
     }
 }
